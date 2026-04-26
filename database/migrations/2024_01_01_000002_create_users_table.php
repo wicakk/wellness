@@ -15,9 +15,22 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('nip')->unique()->nullable();          // Nomor Induk Pegawai
             $table->string('phone')->nullable();
-            $table->string('unit');                               // Unit kerja
+            $table->string('unit');                               // Asal ruangan / unit kerja
             $table->string('jabatan')->nullable();
             $table->string('gender')->nullable();                 // L / P
+
+            // ── Data Personal Tambahan ──────────────────────────────
+            $table->unsignedTinyInteger('usia')->nullable();                          // Usia (tahun)
+            $table->string('pendidikan')->nullable();                                 // SMA, D3, S1, dst.
+            $table->string('status_pernikahan')->nullable();                          // belum_menikah | menikah | cerai_hidup | cerai_mati
+            $table->unsignedTinyInteger('lama_kerja_tahun')->nullable();              // Lama kerja – tahun
+            $table->unsignedTinyInteger('lama_kerja_bulan')->nullable();              // Lama kerja – bulan (0–11)
+
+            // ── Riwayat Kesehatan ──────────────────────────────────
+            $table->boolean('has_health_issue')->nullable();                          // null = belum diisi
+            $table->text('health_issue_detail')->nullable();                          // Detail penyakit jika ada
+
+            // ── Kolom Lama ─────────────────────────────────────────
             $table->date('tanggal_lahir')->nullable();
             $table->text('address')->nullable();
             $table->string('avatar')->nullable();

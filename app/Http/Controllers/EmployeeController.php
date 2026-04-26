@@ -42,20 +42,39 @@ class EmployeeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'nip'      => 'nullable|string|unique:users,nip',
-            'role_id'  => 'required|exists:roles,id',
-            'unit'     => 'required|string|max:100',
-            'jabatan'  => 'nullable|string|max:100',
-            'phone'    => 'nullable|string|max:20',
-            'gender'   => 'nullable|in:L,P',
-            'password' => 'required|string|min:8|confirmed',
+        $validated = $request->validate([
+            // Informasi Dasar
+            'name'                => 'required|string|max:255',
+            'email'               => 'required|email|unique:users,email',
+            'nip'                 => 'required|string|max:50|unique:users,nip',
+            'role_id'             => 'required|exists:roles,id',
+            'unit'                => 'required|string|max:100',
+            'jabatan'             => 'required|string|max:100',
+            'phone'               => 'nullable|string|max:20',
+
+            // Data Personal
+            'gender'              => 'required|in:L,P',
+            'usia'                => 'required|integer|min:18|max:70',
+            'pendidikan'          => 'required|in:SMA/SMK,D1,D2,D3,D4,S1,Profesi,S2,S3',
+            'status_pernikahan'   => 'required|in:belum_menikah,menikah,cerai_hidup,cerai_mati',
+            'lama_kerja_tahun'    => 'required|integer|min:0|max:50',
+            'lama_kerja_bulan'    => 'required|integer|min:0|max:11',
+
+            // Riwayat Kesehatan
+            'has_health_issue'    => 'required|boolean',
+            'health_issue_detail' => 'required_if:has_health_issue,1|nullable|string|max:1000',
+
+            // Password
+            'password'            => 'required|string|min:8|confirmed',
         ]);
 
         $user = User::create([
-            ...$request->only(['name', 'email', 'nip', 'role_id', 'unit', 'jabatan', 'phone', 'gender']),
+            ...$request->only([
+                'name', 'email', 'nip', 'role_id', 'unit', 'jabatan', 'phone',
+                'gender', 'usia', 'pendidikan', 'status_pernikahan',
+                'lama_kerja_tahun', 'lama_kerja_bulan',
+                'has_health_issue', 'health_issue_detail',
+            ]),
             'password' => Hash::make($request->password),
         ]);
 
@@ -74,25 +93,52 @@ class EmployeeController extends Controller
     public function update(Request $request, User $employee)
     {
         $request->validate([
-            'name'    => 'required|string|max:255',
-            'email'   => 'required|email|unique:users,email,'.$employee->id,
-            'nip'     => 'nullable|string|unique:users,nip,'.$employee->id,
-            'role_id' => 'required|exists:roles,id',
-            'unit'    => 'required|string|max:100',
-            'jabatan' => 'nullable|string|max:100',
-            'phone'   => 'nullable|string|max:20',
-            'gender'  => 'nullable|in:L,P',
+            // Informasi Dasar
+            'name'                => 'required|string|max:255',
+            'email'               => 'required|email|unique:users,email,'.$employee->id,
+            'nip'                 => 'required|string|max:50|unique:users,nip,'.$employee->id,
+            'role_id'             => 'required|exists:roles,id',
+            'unit'                => 'required|string|max:100',
+            'jabatan'             => 'required|string|max:100',
+            'phone'               => 'nullable|string|max:20',
+
+            // Data Personal
+            'gender'              => 'required|in:L,P',
+            'usia'                => 'required|integer|min:18|max:70',
+            'pendidikan'          => 'required|in:SMA/SMK,D1,D2,D3,D4,S1,Profesi,S2,S3',
+            'status_pernikahan'   => 'required|in:belum_menikah,menikah,cerai_hidup,cerai_mati',
+            'lama_kerja_tahun'    => 'required|integer|min:0|max:50',
+            'lama_kerja_bulan'    => 'required|integer|min:0|max:11',
+
+            // Riwayat Kesehatan
+            'has_health_issue'    => 'required|boolean',
+            'health_issue_detail' => 'required_if:has_health_issue,1|nullable|string|max:1000',
         ]);
 
         $old = $employee->only(['name', 'email', 'unit', 'role_id']);
-        $employee->update($request->only(['name', 'email', 'nip', 'role_id', 'unit', 'jabatan', 'phone', 'gender']));
+
+        $employee->update($request->only([
+            'name', 'email', 'nip', 'role_id', 'unit', 'jabatan', 'phone',
+            'gender', 'usia', 'pendidikan', 'status_pernikahan',
+            'lama_kerja_tahun', 'lama_kerja_bulan',
+            'has_health_issue', 'health_issue_detail',
+        ]));
+
+        // Kosongkan detail kesehatan jika tidak ada masalah
+        if (! $request->boolean('has_health_issue')) {
+            $employee->update(['health_issue_detail' => null]);
+        }
 
         if ($request->filled('password')) {
             $request->validate(['password' => 'string|min:8|confirmed']);
             $employee->update(['password' => Hash::make($request->password)]);
         }
 
-        \App\Models\AuditLog::record('employee_updated', 'User', $employee->id, $old, $employee->only(['name', 'email', 'unit', 'role_id']));
+        \App\Models\AuditLog::record(
+            'employee_updated', 'User', $employee->id,
+            $old,
+            $employee->only(['name', 'email', 'unit', 'role_id'])
+        );
 
         return redirect()->route('admin.employees.show', $employee)->with('success', 'Data pegawai diperbarui.');
     }
