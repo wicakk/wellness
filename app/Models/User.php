@@ -11,20 +11,29 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
-    protected $fillable = [
+   protected $fillable = [
         'role_id', 'name', 'email', 'nip', 'phone', 'unit', 'jabatan',
         'gender', 'tanggal_lahir', 'address', 'avatar',
         'password', 'theme_preference', 'last_login_at', 'is_active',
+        // ── Tambahan baru ──
+        'usia', 'pendidikan', 'status_pernikahan',
+        'lama_kerja_tahun', 'lama_kerja_bulan',
+        'has_health_issue', 'health_issue_detail',
     ];
 
     protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'last_login_at'     => 'datetime',
-        'tanggal_lahir'     => 'date',
-        'is_active'         => 'boolean',
-        'password'          => 'hashed',
+        'email_verified_at'  => 'datetime',
+        'last_login_at'      => 'datetime',
+        'tanggal_lahir'      => 'date',
+        'is_active'          => 'boolean',
+        'password'           => 'hashed',
+        // ── Tambahan baru ──
+        'usia'               => 'integer',
+        'lama_kerja_tahun'   => 'integer',
+        'lama_kerja_bulan'   => 'integer',
+        'has_health_issue'   => 'boolean',
     ];
 
     // ── Relationships ─────────────────────────────────────────────
