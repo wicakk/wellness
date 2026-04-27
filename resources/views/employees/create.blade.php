@@ -1,284 +1,750 @@
-@extends('layouts.app')
-@section('title', isset($employee) ? 'Edit Pegawai' : 'Tambah Pegawai')
-@section('page-title', isset($employee) ? 'Edit Data Pegawai' : 'Tambah Pegawai Baru')
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tambah Pegawai — WellnessApp</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #0d9488;
+    --teal-light: #ccfbf1;
+    --teal-dark: #0f766e;
+    --bg: #f0f9f8;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --danger: #ef4444;
+    --input-bg: #f8fafc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-@section('content')
-<div class="max-w-8xl mx-auto">
-    <form action="{{ isset($employee) ? route('admin.employees.update', $employee) : route('admin.employees.store') }}"
-          method="POST" class="space-y-5">
-        @csrf
-        @if(isset($employee)) @method('PUT') @endif
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 70% 50% at 10% 0%, rgba(13,148,136,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 90% 100%, rgba(20,184,166,0.06) 0%, transparent 50%);
+    min-height: 100vh;
+    color: var(--text);
+  }
 
-        {{-- ==================== INFORMASI DASAR ==================== --}}
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-5">
-            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Informasi Dasar</h3>
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 240px;
+    background: #fff;
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    z-index: 50;
+    padding: 0;
+  }
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 10px;
+    padding: 22px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--teal), #14b8a6);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(13,148,136,0.3);
+    flex-shrink: 0;
+  }
+  .logo-text { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 800; color: var(--text); }
+  .logo-sub { font-size: 10px; color: var(--muted); font-weight: 500; letter-spacing: 0.5px; }
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  .nav-section { padding: 18px 12px 6px; }
+  .nav-label { font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    cursor: pointer; transition: all 0.15s; margin-bottom: 2px;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: #f1f5f9; color: var(--text); }
+  .nav-item.active { background: var(--teal-light); color: var(--teal-dark); font-weight: 600; }
+  .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
 
-                {{-- 1. Nama Lengkap --}}
-                <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" value="{{ old('name', $employee->name ?? '') }}" required
-                           placeholder="Masukkan nama lengkap"
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('name') border-red-400 @enderror">
-                    @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+  .sidebar-footer {
+    margin-top: auto; padding: 16px 12px;
+    border-top: 1px solid var(--border);
+  }
+  .user-pill {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 12px; background: #f8fafc;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .user-pill:hover { background: #f1f5f9; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), #14b8a6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
 
-                {{-- Email --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">Email <span class="text-red-500">*</span></label>
-                    <input type="email" name="email" value="{{ old('email', $employee->email ?? '') }}" required
-                           placeholder="nama@rscm.co.id"
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('email') border-red-400 @enderror">
-                    @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+  /* ── MAIN CONTENT ── */
+  .main { margin-left: 240px; padding: 28px 36px; min-height: 100vh; }
 
-                {{-- 2. NIP --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">NIP <span class="text-red-500">*</span></label>
-                    <input type="text" name="nip" value="{{ old('nip', $employee->nip ?? '') }}" required
-                           placeholder="Nomor Induk Pegawai"
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('nip') border-red-400 @enderror">
-                    @error('nip') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+  /* Topbar */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .breadcrumb .sep { color: #cbd5e1; }
+  .breadcrumb .current { color: var(--text); font-weight: 600; }
+  .page-title { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; color: var(--text); margin-top: 2px; }
 
-                {{-- 3. Jabatan --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">Jabatan <span class="text-red-500">*</span></label>
-                    <input type="text" name="jabatan" value="{{ old('jabatan', $employee->jabatan ?? '') }}" required
-                           placeholder="Contoh: Perawat, Dokter, Staf"
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('jabatan') border-red-400 @enderror">
-                    @error('jabatan') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+  /* Progress steps */
+  .steps-bar {
+    display: flex; align-items: center; gap: 0;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 16px; padding: 14px 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    overflow-x: auto;
+  }
+  .step {
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+  }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    transition: all 0.2s;
+  }
+  .step.done .step-num { background: var(--teal); color: #fff; }
+  .step.active .step-num { background: var(--teal-light); color: var(--teal-dark); border: 2px solid var(--teal); }
+  .step.idle .step-num { background: #f1f5f9; color: #94a3b8; }
+  .step-label { font-size: 12px; font-weight: 600; }
+  .step.done .step-label { color: var(--teal-dark); }
+  .step.active .step-label { color: var(--text); }
+  .step.idle .step-label { color: #94a3b8; }
+  .step-line { width: 40px; height: 2px; background: #e2e8f0; margin: 0 6px; flex-shrink: 0; border-radius: 99px; }
+  .step-line.done { background: var(--teal); }
 
-                {{-- Role --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">Role <span class="text-red-500">*</span></label>
-                    <select name="role_id" required
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-                        @foreach($roles as $role)
-                        <option value="{{ $role->id }}" {{ old('role_id', $employee->role_id ?? '') == $role->id ? 'selected' : '' }}>{{ $role->display_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+  /* Cards */
+  .card {
+    background: #fff; border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(13,148,136,0.08); }
 
-                {{-- 8. Asal Ruangan (Unit Kerja) --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">Asal Ruangan / Unit Kerja <span class="text-red-500">*</span></label>
-                    <input type="text" name="unit" value="{{ old('unit', $employee->unit ?? '') }}"
-                           list="unit-list" required
-                           placeholder="Ketik atau pilih ruangan"
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    <datalist id="unit-list">
-                        @foreach($units as $unit)<option value="{{ $unit }}">@endforeach
-                    </datalist>
-                    @error('unit') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+  .card-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 22px; padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .card-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
 
-                {{-- No. Telepon --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">No. Telepon</label>
-                    <input type="text" name="phone" value="{{ old('phone', $employee->phone ?? '') }}"
-                           placeholder="08xxxxxxxxxx"
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-                </div>
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .col-span-2 { grid-column: span 2; }
 
+  /* Form fields */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 12px; font-weight: 600; color: #374151;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .field label .req { color: var(--danger); }
+  .field label .badge-opt {
+    background: #f1f5f9; color: #94a3b8;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 1px 6px; border-radius: 4px; text-transform: uppercase;
+  }
+
+  .inp {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px; background: var(--input-bg);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13.5px; color: var(--text);
+    transition: all 0.2s; outline: none;
+  }
+  .inp::placeholder { color: #94a3b8; }
+  .inp:focus { border-color: var(--teal); background: #fff; box-shadow: 0 0 0 4px rgba(13,148,136,0.1); }
+  .inp.has-suffix { padding-right: 52px; }
+
+  .inp-wrap { position: relative; }
+  .inp-suffix {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 11px; color: #94a3b8; pointer-events: none; font-weight: 500;
+  }
+  .inp-icon {
+    position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    color: #94a3b8; pointer-events: none;
+  }
+  .inp.has-icon { padding-left: 40px; }
+
+  select.inp { cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+    padding-right: 36px;
+  }
+
+  textarea.inp { resize: none; }
+
+  /* Radio cards */
+  .radio-cards { display: flex; gap: 10px; }
+  .radio-card {
+    flex: 1; position: relative; cursor: pointer;
+  }
+  .radio-card input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .radio-card-body {
+    padding: 12px 16px; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--input-bg);
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    transition: all 0.15s; cursor: pointer;
+  }
+  .radio-card-body .rc-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid #cbd5e1; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .radio-card input:checked + .radio-card-body {
+    border-color: var(--teal); background: var(--teal-light); color: var(--teal-dark);
+  }
+  .radio-card input:checked + .radio-card-body .rc-dot {
+    border-color: var(--teal); background: var(--teal);
+  }
+  .radio-card input:checked + .radio-card-body .rc-dot::after {
+    content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff;
+  }
+
+  /* Gender icon cards */
+  .gender-cards { display: flex; gap: 10px; }
+  .gender-card { flex: 1; position: relative; cursor: pointer; }
+  .gender-card input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .gender-card-body {
+    padding: 14px 16px; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--input-bg);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    transition: all 0.15s; cursor: pointer; text-align: center;
+  }
+  .gender-card input:checked + .gender-card-body {
+    border-color: var(--teal); background: var(--teal-light); color: var(--teal-dark);
+    box-shadow: 0 0 0 4px rgba(13,148,136,0.1);
+  }
+
+  /* Health toggle */
+  .health-toggle-wrap { display: flex; gap: 10px; }
+
+  /* Password strength */
+  .pwd-strength { display: flex; gap: 4px; margin-top: 8px; }
+  .pwd-bar { height: 3px; flex: 1; border-radius: 99px; background: #e2e8f0; transition: background 0.3s; }
+  .pwd-bar.weak { background: #ef4444; }
+  .pwd-bar.ok { background: #f59e0b; }
+  .pwd-bar.strong { background: var(--teal); }
+  .pwd-hint { font-size: 11px; color: var(--muted); margin-top: 5px; }
+
+  /* Action bar */
+  .action-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    position: sticky; bottom: 28px;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 20px; border-radius: 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; transition: all 0.2s; text-decoration: none;
+  }
+  .btn-ghost {
+    background: transparent; color: var(--muted);
+    border: 1.5px solid var(--border);
+  }
+  .btn-ghost:hover { background: #f8fafc; color: var(--text); border-color: #94a3b8; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--teal) 0%, #14b8a6 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(13,148,136,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(13,148,136,0.4); }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* Helper text */
+  .helper { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+  /* Toggle for health detail */
+  #health-detail { display: none; }
+  #health-detail.show { display: flex; flex-direction: column; gap: 6px; }
+
+  /* Divider */
+  .divider { height: 1px; background: #f1f5f9; margin: 4px 0 20px; }
+
+  /* Lama kerja split input */
+  .split-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Animations */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
+  .card { animation: fadeUp 0.4s ease both; }
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.2s; }
+
+  /* Required asterisk tooltip */
+  .req-note { font-size: 11px; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
+
+  /* Tag for count badge */
+  .count-tag { display: inline-flex; align-items: center; justify-content: center; background: #f1f5f9; color: #64748b; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; margin-left: 6px; }
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.05 3.027 1 5.5 1c1.71 0 3.252.862 4.5 2.2C11.248 1.862 12.79 1 14.5 1 16.973 1 19 3.05 19 7.19c0 4.105-5.37 8.863-11 14.402z"/></svg>
+    </div>
+    <div>
+      <div class="logo-text">WellnessApp</div>
+      <div class="logo-sub">Mental Health Platform</div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Utama</div>
+    <a class="nav-item" href="#">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item active" href="#">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Data Pegawai
+      <span class="count-tag ml-auto">248</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Skrining
+    </a>
+    <a class="nav-item" href="#">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      Kasus Aktif
+      <span class="count-tag ml-auto" style="background:#fef2f2;color:#ef4444;">12</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Laporan
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Pengaturan</div>
+    <a class="nav-item" href="#">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      Pengaturan
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="avatar">A</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Admin RSCM</div>
+        <div style="font-size:10px;color:#94a3b8;">admin@wellness.id</div>
+      </div>
+      <svg width="14" height="14" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="breadcrumb">
+        <span>Dashboard</span>
+        <span class="sep">›</span>
+        <span>Data Pegawai</span>
+        <span class="sep">›</span>
+        <span class="current">Tambah Pegawai</span>
+      </div>
+      <h1 class="page-title">Tambah Pegawai Baru</h1>
+    </div>
+    <div class="req-note">
+      <span style="color:var(--danger);font-size:14px;">*</span> Wajib diisi
+    </div>
+  </div>
+
+  <!-- Progress Steps -->
+  <div class="steps-bar">
+    <div class="step done">
+      <div class="step-num">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <div class="step-label">Informasi Dasar</div>
+    </div>
+    <div class="step-line done"></div>
+    <div class="step active">
+      <div class="step-num">2</div>
+      <div class="step-label">Data Personal</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step idle">
+      <div class="step-num">3</div>
+      <div class="step-label">Riwayat Kesehatan</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step idle">
+      <div class="step-num">4</div>
+      <div class="step-label">Password</div>
+    </div>
+  </div>
+
+  <form id="emp-form" onsubmit="return false;">
+
+  <!-- ── SECTION 1: INFORMASI DASAR ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#f0fdf4;">
+        <svg width="18" height="18" fill="none" stroke="#0d9488" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Informasi Dasar</div>
+        <div class="card-sub">Identitas dan posisi pegawai dalam organisasi</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+
+      <!-- Nama Lengkap -->
+      <div class="field col-span-2">
+        <label>Nama Lengkap <span class="req">*</span></label>
+        <div class="inp-wrap">
+          <svg class="inp-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          <input type="text" class="inp has-icon" placeholder="Masukkan nama lengkap pegawai" name="name">
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="field">
+        <label>Email <span class="req">*</span></label>
+        <div class="inp-wrap">
+          <svg class="inp-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <input type="email" class="inp has-icon" placeholder="nama@rscm.co.id" name="email">
+        </div>
+      </div>
+
+      <!-- NIP -->
+      <div class="field">
+        <label>NIP <span class="req">*</span></label>
+        <div class="inp-wrap">
+          <svg class="inp-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"/></svg>
+          <input type="text" class="inp has-icon" placeholder="Nomor Induk Pegawai" name="nip">
+        </div>
+      </div>
+
+      <!-- Jabatan -->
+      <div class="field">
+        <label>Jabatan <span class="req">*</span></label>
+        <div class="inp-wrap">
+          <svg class="inp-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <input type="text" class="inp has-icon" placeholder="Perawat / Dokter / Staf" name="jabatan">
+        </div>
+      </div>
+
+      <!-- Role -->
+      <div class="field">
+        <label>Role <span class="req">*</span></label>
+        <select class="inp" name="role_id">
+          <option value="">— Pilih Role —</option>
+          <option value="1">Admin</option>
+          <option value="2">Wellness Officer</option>
+          <option value="3">Psikolog</option>
+          <option value="4">Pegawai</option>
+        </select>
+      </div>
+
+      <!-- Unit Kerja -->
+      <div class="field">
+        <label>Asal Ruangan / Unit Kerja <span class="req">*</span></label>
+        <div class="inp-wrap">
+          <svg class="inp-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          <input type="text" class="inp has-icon" placeholder="Ketik atau pilih ruangan" list="unit-list" name="unit">
+          <datalist id="unit-list">
+            <option value="IGD">
+            <option value="ICU">
+            <option value="Poli Umum">
+            <option value="Poli Jiwa">
+            <option value="Bedah">
+            <option value="Radiologi">
+            <option value="Farmasi">
+            <option value="Administrasi">
+            <option value="Keuangan">
+          </datalist>
+        </div>
+      </div>
+
+      <!-- No Telepon -->
+      <div class="field">
+        <label>No. Telepon <span class="badge-opt">opsional</span></label>
+        <div class="inp-wrap">
+          <svg class="inp-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          <input type="text" class="inp has-icon" placeholder="08xxxxxxxxxx" name="phone">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: DATA PERSONAL ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#eff6ff;">
+        <svg width="18" height="18" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Data Personal</div>
+        <div class="card-sub">Informasi demografis dan latar belakang pegawai</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+
+      <!-- Jenis Kelamin -->
+      <div class="field">
+        <label>Jenis Kelamin <span class="req">*</span></label>
+        <div class="gender-cards">
+          <label class="gender-card">
+            <input type="radio" name="gender" value="L">
+            <div class="gender-card-body">
+              <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 5l5-5m0 0h-4m4 0v4"/></svg>
+              Laki-laki
             </div>
+          </label>
+          <label class="gender-card">
+            <input type="radio" name="gender" value="P">
+            <div class="gender-card-body">
+              <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v6m-3-3h6"/></svg>
+              Perempuan
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="grid-2">
+
+        <!-- Usia -->
+        <div class="field">
+          <label>Usia <span class="req">*</span></label>
+          <div class="inp-wrap">
+            <input type="number" class="inp has-suffix" placeholder="Contoh: 30" min="18" max="70" name="usia">
+            <span class="inp-suffix">tahun</span>
+          </div>
+          <span class="helper">Rentang usia 18 — 70 tahun</span>
         </div>
 
-        {{-- ==================== DATA PERSONAL ==================== --}}
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-5">
-            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Data Personal</h3>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                {{-- 4. Jenis Kelamin --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">Jenis Kelamin <span class="text-red-500">*</span></label>
-                    <select name="gender" required
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('gender') border-red-400 @enderror">
-                        <option value="">— Pilih —</option>
-                        <option value="L" {{ old('gender', $employee->gender ?? '') === 'L' ? 'selected' : '' }}>Laki-laki</option>
-                        <option value="P" {{ old('gender', $employee->gender ?? '') === 'P' ? 'selected' : '' }}>Perempuan</option>
-                    </select>
-                    @error('gender') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- 5. Usia --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">Usia <span class="text-red-500">*</span></label>
-                    <div class="relative">
-                        <input type="number" name="usia" value="{{ old('usia', $employee->usia ?? '') }}" required
-                               min="18" max="70" placeholder="Tahun"
-                               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('usia') border-red-400 @enderror">
-                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">tahun</span>
-                    </div>
-                    @error('usia') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- 6. Pendidikan --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">Pendidikan Terakhir <span class="text-red-500">*</span></label>
-                    <select name="pendidikan" required
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('pendidikan') border-red-400 @enderror">
-                        <option value="">— Pilih —</option>
-                        @foreach([
-                            'SMA/SMK'    => 'SMA / SMK',
-                            'D1'         => 'Diploma 1 (D1)',
-                            'D2'         => 'Diploma 2 (D2)',
-                            'D3'         => 'Diploma 3 (D3)',
-                            'D4'         => 'Diploma 4 (D4)',
-                            'S1'         => 'Sarjana (S1)',
-                            'Profesi'    => 'Profesi (Ners / Dokter / Apoteker)',
-                            'S2'         => 'Magister (S2)',
-                            'S3'         => 'Doktor (S3)',
-                        ] as $val => $label)
-                        <option value="{{ $val }}" {{ old('pendidikan', $employee->pendidikan ?? '') === $val ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    @error('pendidikan') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- 7. Status Pernikahan --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">Status Pernikahan <span class="text-red-500">*</span></label>
-                    <select name="status_pernikahan" required
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('status_pernikahan') border-red-400 @enderror">
-                        <option value="">— Pilih —</option>
-                        @foreach([
-                            'belum_menikah' => 'Belum Menikah',
-                            'menikah'       => 'Menikah',
-                            'cerai_hidup'   => 'Cerai Hidup',
-                            'cerai_mati'    => 'Cerai Mati',
-                        ] as $val => $label)
-                        <option value="{{ $val }}" {{ old('status_pernikahan', $employee->status_pernikahan ?? '') === $val ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    @error('status_pernikahan') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- 9. Lama Kerja di RSCM --}}
-                <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium mb-1.5">Lama Bekerja di RSCM <span class="text-red-500">*</span></label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="relative">
-                            <input type="number" name="lama_kerja_tahun"
-                                   value="{{ old('lama_kerja_tahun', $employee->lama_kerja_tahun ?? '') }}"
-                                   min="0" max="50" placeholder="0"
-                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('lama_kerja_tahun') border-red-400 @enderror">
-                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">tahun</span>
-                        </div>
-                        <div class="relative">
-                            <input type="number" name="lama_kerja_bulan"
-                                   value="{{ old('lama_kerja_bulan', $employee->lama_kerja_bulan ?? '') }}"
-                                   min="0" max="11" placeholder="0"
-                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('lama_kerja_bulan') border-red-400 @enderror">
-                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">bulan</span>
-                        </div>
-                    </div>
-                    @error('lama_kerja_tahun') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-            </div>
+        <!-- Status Pernikahan -->
+        <div class="field">
+          <label>Status Pernikahan <span class="req">*</span></label>
+          <select class="inp" name="status_pernikahan">
+            <option value="">— Pilih —</option>
+            <option value="belum_menikah">Belum Menikah</option>
+            <option value="menikah">Menikah</option>
+            <option value="cerai_hidup">Cerai Hidup</option>
+            <option value="cerai_mati">Cerai Mati</option>
+          </select>
         </div>
 
-        {{-- ==================== RIWAYAT KESEHATAN ==================== --}}
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-4">
-            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Riwayat Kesehatan</h3>
-
-            {{-- 10. Apakah memiliki masalah kesehatan --}}
-            <div>
-                <label class="block text-sm font-medium mb-2">Apakah memiliki masalah kesehatan? <span class="text-red-500">*</span></label>
-                <div class="flex gap-4">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="has_health_issue" value="1" id="health_yes"
-                               {{ old('has_health_issue', $employee->has_health_issue ?? '') == '1' ? 'checked' : '' }}
-                               class="w-4 h-4 text-teal-600 focus:ring-teal-500">
-                        <span class="text-sm">Ya</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="has_health_issue" value="0" id="health_no"
-                               {{ old('has_health_issue', $employee->has_health_issue ?? '') === '0' ? 'checked' : '' }}
-                               class="w-4 h-4 text-teal-600 focus:ring-teal-500">
-                        <span class="text-sm">Tidak</span>
-                    </label>
-                </div>
-                @error('has_health_issue') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            {{-- Detail masalah kesehatan (muncul jika pilih Ya) --}}
-            <div id="health-detail-wrapper" class="{{ old('has_health_issue', $employee->has_health_issue ?? '') == '1' ? '' : 'hidden' }}">
-                <label class="block text-sm font-medium mb-1.5">Sebutkan masalah kesehatan yang dimiliki</label>
-                <textarea name="health_issue_detail" rows="3"
-                          placeholder="Contoh: Hipertensi, Diabetes Melitus Tipe 2, Asma, dll."
-                          class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none @error('health_issue_detail') border-red-400 @enderror">{{ old('health_issue_detail', $employee->health_issue_detail ?? '') }}</textarea>
-                <p class="text-xs text-slate-400 mt-1">Pisahkan dengan koma jika lebih dari satu kondisi.</p>
-                @error('health_issue_detail') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-            </div>
+        <!-- Pendidikan -->
+        <div class="field">
+          <label>Pendidikan Terakhir <span class="req">*</span></label>
+          <select class="inp" name="pendidikan">
+            <option value="">— Pilih —</option>
+            <option>SMA / SMK</option>
+            <option>Diploma 1 (D1)</option>
+            <option>Diploma 2 (D2)</option>
+            <option>Diploma 3 (D3)</option>
+            <option>Diploma 4 (D4)</option>
+            <option>Sarjana (S1)</option>
+            <option>Profesi (Ners / Dokter / Apoteker)</option>
+            <option>Magister (S2)</option>
+            <option>Doktor (S3)</option>
+          </select>
         </div>
 
-        {{-- ==================== PASSWORD ==================== --}}
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-4">
-            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                {{ isset($employee) ? 'Ganti Password (kosongkan jika tidak diubah)' : 'Password' }}
-            </h3>
-            @if(isset($employee))
-            <div>
-                <label class="block text-sm font-medium mb-1.5">Password Baru</label>
-                <input type="password" name="password"
-                       class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+        <!-- Lama Kerja -->
+        <div class="field">
+          <label>Lama Bekerja di RSCM <span class="req">*</span></label>
+          <div class="split-inputs">
+            <div class="inp-wrap">
+              <input type="number" class="inp has-suffix" placeholder="0" min="0" max="50" name="lama_kerja_tahun">
+              <span class="inp-suffix">tahun</span>
             </div>
-            <div>
-                <label class="block text-sm font-medium mb-1.5">Konfirmasi Password Baru</label>
-                <input type="password" name="password_confirmation"
-                       class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+            <div class="inp-wrap">
+              <input type="number" class="inp has-suffix" placeholder="0" min="0" max="11" name="lama_kerja_bulan">
+              <span class="inp-suffix">bulan</span>
             </div>
-            @else
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">Password <span class="text-red-500">*</span></label>
-                    <input type="password" name="password" required
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 @error('password') border-red-400 @enderror">
-                    @error('password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1.5">Konfirmasi Password <span class="text-red-500">*</span></label>
-                    <input type="password" name="password_confirmation" required
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-                </div>
-            </div>
-            @endif
+          </div>
         </div>
 
-        {{-- ==================== ACTION BUTTONS ==================== --}}
-        <div class="flex justify-between gap-4">
-            <a href="{{ route('admin.employees.index') }}"
-               class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                ← Batal
-            </a>
-            <button type="submit"
-                    class="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold transition-colors">
-                {{ isset($employee) ? 'Simpan Perubahan' : 'Tambah Pegawai' }}
-            </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3: RIWAYAT KESEHATAN ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#fff7ed;">
+        <svg width="18" height="18" fill="none" stroke="#f97316" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Riwayat Kesehatan</div>
+        <div class="card-sub">Informasi kondisi medis yang relevan</div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:16px;">
+      <label>Apakah memiliki masalah kesehatan? <span class="req">*</span></label>
+      <div class="radio-cards">
+        <label class="radio-card">
+          <input type="radio" name="has_health_issue" value="1" onchange="toggleHealth(1)">
+          <div class="radio-card-body">
+            <div class="rc-dot"></div>
+            Ya, ada kondisi tertentu
+          </div>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="has_health_issue" value="0" onchange="toggleHealth(0)" checked>
+          <div class="radio-card-body">
+            <div class="rc-dot"></div>
+            Tidak ada masalah kesehatan
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div id="health-detail">
+      <div class="field">
+        <label>Sebutkan masalah kesehatan yang dimiliki</label>
+        <textarea class="inp" name="health_issue_detail" rows="3" placeholder="Contoh: Hipertensi, Diabetes Melitus Tipe 2, Asma…"></textarea>
+        <span class="helper">Pisahkan dengan koma jika lebih dari satu kondisi</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4: PASSWORD ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#faf5ff;">
+        <svg width="18" height="18" fill="none" stroke="#9333ea" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Password Akun</div>
+        <div class="card-sub">Buat password yang aman untuk akun pegawai</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+
+      <div class="field">
+        <label>Password <span class="req">*</span></label>
+        <div class="inp-wrap">
+          <svg class="inp-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          <input type="password" class="inp has-icon" placeholder="Min. 8 karakter" name="password" id="pwdInput" oninput="checkStrength(this.value)">
         </div>
+        <div class="pwd-strength">
+          <div class="pwd-bar" id="bar1"></div>
+          <div class="pwd-bar" id="bar2"></div>
+          <div class="pwd-bar" id="bar3"></div>
+          <div class="pwd-bar" id="bar4"></div>
+        </div>
+        <span class="pwd-hint" id="pwdHint">Gunakan kombinasi huruf, angka, dan simbol</span>
+      </div>
 
-    </form>
-</div>
+      <div class="field">
+        <label>Konfirmasi Password <span class="req">*</span></label>
+        <div class="inp-wrap">
+          <svg class="inp-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <input type="password" class="inp has-icon" placeholder="Ulangi password" name="password_confirmation">
+        </div>
+      </div>
 
-@push('scripts')
+    </div>
+  </div>
+
+  <!-- ── ACTION BAR ── -->
+  <div class="action-bar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <a href="#" class="btn btn-ghost">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        Batal
+      </a>
+      <span style="font-size:12px;color:#94a3b8;">atau tekan Esc untuk keluar</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button type="button" class="btn btn-ghost" style="border-color:var(--teal);color:var(--teal);">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+        Simpan Draft
+      </button>
+      <button type="submit" class="btn btn-primary" onclick="handleSubmit()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        Tambah Pegawai
+      </button>
+    </div>
+  </div>
+
+  </form>
+</main>
+
 <script>
-    // Toggle detail kesehatan
-    document.querySelectorAll('input[name="has_health_issue"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            var wrapper = document.getElementById('health-detail-wrapper');
-            if (this.value === '1') {
-                wrapper.classList.remove('hidden');
-            } else {
-                wrapper.classList.add('hidden');
-                document.querySelector('textarea[name="health_issue_detail"]').value = '';
-            }
-        });
-    });
+  function toggleHealth(val) {
+    const el = document.getElementById('health-detail');
+    if (val === 1) el.classList.add('show');
+    else { el.classList.remove('show'); el.querySelector('textarea').value = ''; }
+  }
+
+  function checkStrength(pwd) {
+    const bars = [document.getElementById('bar1'),document.getElementById('bar2'),document.getElementById('bar3'),document.getElementById('bar4')];
+    const hint = document.getElementById('pwdHint');
+    bars.forEach(b => { b.className = 'pwd-bar'; });
+
+    if (!pwd) { hint.textContent = 'Gunakan kombinasi huruf, angka, dan simbol'; return; }
+
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+    const cls = score <= 1 ? 'weak' : score === 2 ? 'ok' : 'strong';
+    const labels = { weak: 'Lemah — tambahkan huruf kapital, angka, atau simbol', ok: 'Sedang — coba tambahkan simbol khusus', strong: 'Kuat — password ini sudah aman ✓' };
+
+    for (let i = 0; i < score; i++) bars[i].classList.add(cls);
+    hint.textContent = labels[cls];
+    hint.style.color = cls === 'strong' ? 'var(--teal)' : cls === 'ok' ? '#f59e0b' : '#ef4444';
+  }
+
+  function handleSubmit() {
+    alert('Data pegawai berhasil disimpan! (demo)');
+  }
 </script>
-@endpush
-@endsection
+</body>
+</html>

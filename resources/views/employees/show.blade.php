@@ -16,27 +16,85 @@
             <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                 {{ $employee->role->display_name }}
             </span>
-            @if(!$employee->is_active)
-            <div class="mt-2">
-                <span class="px-3 py-1 rounded-full text-xs bg-red-100 text-red-600">Nonaktif</span>
-            </div>
-            @endif
         </div>
 
+        {{-- Informasi Dasar --}}
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5 space-y-3 text-sm">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Informasi Dasar</p>
             <div class="flex justify-between"><span class="text-slate-500">NIP</span><span class="font-medium">{{ $employee->nip ?? '—' }}</span></div>
             <div class="flex justify-between"><span class="text-slate-500">Unit</span><span class="font-medium">{{ $employee->unit }}</span></div>
             <div class="flex justify-between"><span class="text-slate-500">Email</span><span class="font-medium text-xs">{{ $employee->email }}</span></div>
             <div class="flex justify-between"><span class="text-slate-500">Telepon</span><span class="font-medium">{{ $employee->phone ?? '—' }}</span></div>
-            <div class="flex justify-between"><span class="text-slate-500">Gender</span><span class="font-medium">{{ $employee->gender === 'L' ? 'Laki-laki' : ($employee->gender === 'P' ? 'Perempuan' : '—') }}</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Gender</span>
+                <span class="font-medium">
+                    {{ match($employee->gender) {
+                        'L' => 'Laki-laki',
+                        'P' => 'Perempuan',
+                        default => '—'
+                    } }}
+                </span>
+            </div>
             <div class="flex justify-between"><span class="text-slate-500">Bergabung</span><span class="font-medium">{{ $employee->created_at->format('M Y') }}</span></div>
+        </div>
+
+        {{-- Data Personal --}}
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5 space-y-3 text-sm">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Data Personal</p>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Usia</span>
+                <span class="font-medium">{{ $employee->usia ? $employee->usia . ' tahun' : '—' }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Status Pernikahan</span>
+                <span class="font-medium">
+                    {{ match($employee->status_pernikahan) {
+                        'belum_menikah' => 'Belum Menikah',
+                        'menikah'       => 'Menikah',
+                        'cerai_hidup'   => 'Cerai Hidup',
+                        'cerai_mati'    => 'Cerai Mati',
+                        default         => '—'
+                    } }}
+                </span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Pendidikan</span>
+                <span class="font-medium">{{ $employee->pendidikan ?? '—' }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Lama Bekerja</span>
+                <span class="font-medium">
+                    @if($employee->lama_kerja_tahun !== null || $employee->lama_kerja_bulan !== null)
+                        {{ $employee->lama_kerja_tahun ?? 0 }} thn {{ $employee->lama_kerja_bulan ?? 0 }} bln
+                    @else
+                        —
+                    @endif
+                </span>
+            </div>
+        </div>
+
+        {{-- Riwayat Kesehatan --}}
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5 space-y-3 text-sm">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Riwayat Kesehatan</p>
+            <div class="flex justify-between items-center">
+                <span class="text-slate-500">Masalah Kesehatan</span>
+                @if($employee->has_health_issue)
+                    <span class="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Ada kondisi</span>
+                @else
+                    <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Tidak ada</span>
+                @endif
+            </div>
+            @if($employee->has_health_issue && $employee->health_issue_detail)
+            <p class="text-xs text-slate-500 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 leading-relaxed">
+                {{ $employee->health_issue_detail }}
+            </p>
+            @endif
         </div>
 
         <div class="flex flex-col gap-2">
             @if(auth()->user()->isAdmin())
             <a href="{{ route('admin.employees.edit', $employee) }}"
                class="block text-center px-4 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-medium hover:bg-teal-700 transition-colors">
-                ✏️ Edit Data
+                Edit Data
             </a>
             @endif
             <a href="{{ route('admin.employees.index') }}"

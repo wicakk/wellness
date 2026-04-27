@@ -42,17 +42,15 @@
                     @endforeach
                 </select>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-500 mb-1">Status</label>
-                <select name="status" class="px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    <option value="">Semua</option>
-                    <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
-                    <option value="nonaktif" {{ request('status') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
-                </select>
-            </div>
-            <button type="submit" class="px-4 py-2 bg-teal-600 text-white text-sm rounded-xl hover:bg-teal-700 transition-colors"><svg class="w-4 h-4 mr-1.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> Filter</button>
-            @if(request()->hasAny(['search','role','unit','status']))
-            <a href="{{ route('admin.employees.index') }}" class="px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"><svg class="w-4 h-4 mr-1.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> Reset</a>
+            <button type="submit" class="px-4 py-2 bg-teal-600 text-white text-sm rounded-xl hover:bg-teal-700 transition-colors">
+                <svg class="w-4 h-4 mr-1.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                Filter
+            </button>
+            @if(request()->hasAny(['search','role','unit']))
+            <a href="{{ route('admin.employees.index') }}" class="px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                <svg class="w-4 h-4 mr-1.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                Reset
+            </a>
             @endif
         </form>
     </div>
@@ -68,9 +66,9 @@
                     <tr class="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50">
                         <th class="px-5 py-3 text-left">Pegawai</th>
                         <th class="px-5 py-3 text-left">NIP</th>
+                        <th class="px-5 py-3 text-left">Jabatan</th>
                         <th class="px-5 py-3 text-left">Unit</th>
                         <th class="px-5 py-3 text-left">Role</th>
-                        <th class="px-5 py-3 text-left">Status</th>
                         <th class="px-5 py-3 text-left">Aksi</th>
                     </tr>
                 </thead>
@@ -89,18 +87,12 @@
                             </div>
                         </td>
                         <td class="px-5 py-3 text-xs text-slate-500">{{ $emp->nip ?? '—' }}</td>
+                        <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-300">{{ $emp->jabatan ?? '—' }}</td>
                         <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-300">{{ $emp->unit }}</td>
                         <td class="px-5 py-3">
                             <span class="px-2 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                                 {{ $emp->role->display_name }}
                             </span>
-                        </td>
-                        <td class="px-5 py-3">
-                            @if($emp->is_active)
-                            <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Aktif</span>
-                            @else
-                            <span class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-500">Nonaktif</span>
-                            @endif
                         </td>
                         <td class="px-5 py-3 flex gap-2">
                             <a href="{{ route('admin.employees.show', $emp) }}" class="text-xs text-teal-600 hover:underline">Detail</a>
@@ -112,7 +104,9 @@
                     @empty
                     <tr>
                         <td colspan="6" class="px-5 py-10 text-center text-slate-400">
-                            <div class="mb-2 flex justify-center"><svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
+                            <div class="mb-2 flex justify-center">
+                                <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </div>
                             Tidak ada pegawai ditemukan
                         </td>
                     </tr>
