@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +15,11 @@ class AuthenticatedSessionController extends Controller
 {
     public function create(): View
     {
-        return view('auth.login');
+        $roles     = Role::all();
+        $units     = User::distinct()->pluck('unit')->filter()->sort()->values();
+        $activeTab = 'login';
+
+        return view('auth.login', compact('roles', 'units', 'activeTab'));
     }
 
     public function store(LoginRequest $request): RedirectResponse
