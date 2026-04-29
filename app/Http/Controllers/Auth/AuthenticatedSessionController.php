@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Role;
+use App\Models\Room;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,9 +18,10 @@ class AuthenticatedSessionController extends Controller
     {
         $roles     = Role::all();
         $units     = User::distinct()->pluck('unit')->filter()->sort()->values();
+        $rooms = Room::orderBy('name')->get();
         $activeTab = 'login';
 
-        return view('auth.login', compact('roles', 'units', 'activeTab'));
+        return view('auth.login', compact('roles', 'units', 'rooms', 'activeTab'));
     }
 
     public function store(LoginRequest $request): RedirectResponse

@@ -237,19 +237,18 @@
   <div class="panel-right">
 
     <div class="tab-nav">
-      <button type="button" class="tab-btn" id="tab-login" onclick="switchTab('login')">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-        Masuk
-      </button>
       <button type="button" class="tab-btn" id="tab-register" onclick="switchTab('register')">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
         Daftar Akun
       </button>
+      <button type="button" class="tab-btn" id="tab-login" onclick="switchTab('login')">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+        Masuk
+      </button>
+      
     </div>
 
-    {{-- ══════════════════════════════════════════════════════ --}}
-    {{-- LOGIN VIEW                                            --}}
-    {{-- ══════════════════════════════════════════════════════ --}}
+    {{-- LOGIN VIEW --}}
     <div class="panel-body view" id="view-login">
 
       <div class="welcome-head">
@@ -348,9 +347,7 @@
 
     </div>{{-- /view-login --}}
 
-    {{-- ══════════════════════════════════════════════════════ --}}
-    {{-- REGISTER VIEW                                         --}}
-    {{-- ══════════════════════════════════════════════════════ --}}
+    {{-- REGISTER VIEW --}}
     <div class="panel-body view" id="view-register">
 
       <div class="welcome-head">
@@ -372,7 +369,7 @@
       <form method="POST" action="{{ route('register') }}">
         @csrf
 
-        {{-- ── SEKSI 1: Informasi Dasar ── --}}
+        {{-- SEKSI 1: Informasi Dasar --}}
         <div class="sec">
           <div class="sec-hdr">
             <div class="sec-icon" style="background:#f0fdf4;">
@@ -432,28 +429,25 @@
               <select name="role_id" class="inp @error('role_id') is-invalid @enderror">
                 <option value="">— Pilih Role —</option>
                 @foreach($roles->where('name', 'pegawai') as $role)
-                    <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
-                        {{ ucfirst(str_replace('_', ' ', $role->name)) }}
-                    </option>
+                  <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
+                    {{ ucfirst(str_replace('_', ' ', $role->name)) }}
+                  </option>
                 @endforeach
               </select>
               @error('role_id')<div class="error-msg">{{ $message }}</div>@enderror
             </div>
 
+            {{-- Unit Kerja — dari tabel rooms --}}
             <div class="field">
               <label>Unit Kerja / Ruangan <span class="req">*</span></label>
-              <div class="inp-wrap">
-                <svg class="inp-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                <input type="text" name="unit" value="{{ old('unit') }}"
-                  class="inp has-icon @error('unit') is-invalid @enderror"
-                  placeholder="IGD / ICU / Poli Umum …" list="unit-opts">
-                <datalist id="unit-opts">
-                  @foreach($units as $u)<option>{{ $u }}</option>@endforeach
-                  <option>IGD</option><option>ICU</option><option>Poli Umum</option>
-                  <option>Poli Jiwa</option><option>Bedah</option><option>Radiologi</option>
-                  <option>Farmasi</option><option>Administrasi</option><option>Keuangan</option>
-                </datalist>
-              </div>
+              <select name="unit" class="inp @error('unit') is-invalid @enderror">
+                <option value="">— Pilih Ruangan —</option>
+                @foreach($rooms as $room)
+                  <option value="{{ $room->name }}" {{ old('unit') === $room->name ? 'selected' : '' }}>
+                    {{ $room->name }}
+                  </option>
+                @endforeach
+              </select>
               @error('unit')<div class="error-msg">{{ $message }}</div>@enderror
             </div>
 
@@ -469,7 +463,7 @@
           </div>
         </div>
 
-        {{-- ── SEKSI 2: Data Personal ── --}}
+        {{-- SEKSI 2: Data Personal --}}
         <div class="sec">
           <div class="sec-hdr">
             <div class="sec-icon" style="background:#eff6ff;">
@@ -518,9 +512,9 @@
               <select name="status_pernikahan" class="inp @error('status_pernikahan') is-invalid @enderror">
                 <option value="">— Pilih —</option>
                 <option value="belum_menikah"  {{ old('status_pernikahan') === 'belum_menikah'  ? 'selected' : '' }}>Belum Menikah</option>
-                <option value="menikah"         {{ old('status_pernikahan') === 'menikah'         ? 'selected' : '' }}>Menikah</option>
-                <option value="cerai_hidup"     {{ old('status_pernikahan') === 'cerai_hidup'     ? 'selected' : '' }}>Cerai Hidup</option>
-                <option value="cerai_mati"      {{ old('status_pernikahan') === 'cerai_mati'      ? 'selected' : '' }}>Cerai Mati</option>
+                <option value="menikah"        {{ old('status_pernikahan') === 'menikah'        ? 'selected' : '' }}>Menikah</option>
+                <option value="cerai_hidup"    {{ old('status_pernikahan') === 'cerai_hidup'    ? 'selected' : '' }}>Cerai Hidup</option>
+                <option value="cerai_mati"     {{ old('status_pernikahan') === 'cerai_mati'     ? 'selected' : '' }}>Cerai Mati</option>
               </select>
               @error('status_pernikahan')<div class="error-msg">{{ $message }}</div>@enderror
             </div>
@@ -558,7 +552,7 @@
           </div>
         </div>
 
-        {{-- ── SEKSI 3: Riwayat Kesehatan ── --}}
+        {{-- SEKSI 3: Riwayat Kesehatan --}}
         <div class="sec">
           <div class="sec-hdr">
             <div class="sec-icon" style="background:#fff7ed;">
@@ -567,10 +561,6 @@
             <div><div class="sec-title">Riwayat Kesehatan</div><div class="sec-sub">Informasi kondisi medis yang relevan</div></div>
           </div>
 
-          {{--
-            PENTING: hidden input value="0" sebagai fallback default.
-            Radio value="1" akan override ketika dipilih karena posisinya SETELAH hidden.
-          --}}
           <input type="hidden" name="has_health_issue" value="0">
 
           <div class="field">
@@ -604,7 +594,7 @@
           </div>
         </div>
 
-        {{-- ── SEKSI 4: Password ── --}}
+        {{-- SEKSI 4: Password --}}
         <div class="sec">
           <div class="sec-hdr">
             <div class="sec-icon" style="background:#faf5ff;">
@@ -636,7 +626,6 @@
               <label>Konfirmasi Password <span class="req">*</span></label>
               <div class="inp-wrap">
                 <svg class="inp-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                {{-- name HARUS password_confirmation (bukan password_confirm) --}}
                 <input type="password" name="password_confirmation"
                   class="inp has-icon"
                   placeholder="Ulangi password"
@@ -662,7 +651,6 @@
 </div>{{-- /wrap --}}
 
 <script>
-  // Tab aktif ditentukan dari PHP (register jika dari route register atau ada errors di form register)
   const initialTab = '{{ $activeTab ?? (old("_token") && $errors->any() ? "register" : "login") }}';
 
   function switchTab(tab) {
@@ -672,7 +660,6 @@
     document.getElementById('tab-register').classList.toggle('active', tab === 'register');
   }
 
-  // Aktifkan tab yang benar saat halaman load
   switchTab(initialTab);
 
   function togglePwd(inputId, iconId) {

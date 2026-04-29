@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Room;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
+
 
 class RegisteredUserController extends Controller
 {
@@ -20,9 +22,10 @@ class RegisteredUserController extends Controller
     public function create(): View
     {
         $roles = Role::all();
+        $rooms = Room::orderBy('name')->get();
         $units = User::distinct()->pluck('unit')->filter()->sort()->values();
 
-        return view('auth.register', compact('roles', 'units'));
+        return view('auth.register', compact('roles', 'units', 'rooms'));
     }
 
     /**

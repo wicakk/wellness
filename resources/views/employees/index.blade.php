@@ -38,7 +38,9 @@
                 <select name="unit" class="px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500">
                     <option value="">Semua Unit</option>
                     @foreach($units as $unit)
-                    <option value="{{ $unit }}" {{ request('unit') === $unit ? 'selected' : '' }}>{{ $unit }}</option>
+                    <option value="{{ $unit->name }}" {{ request('unit') === $unit->name ? 'selected' : '' }}>
+                        {{ $unit->name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -88,7 +90,7 @@
                         </td>
                         <td class="px-5 py-3 text-xs text-slate-500">{{ $emp->nip ?? '—' }}</td>
                         <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-300">{{ $emp->jabatan ?? '—' }}</td>
-                        <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-300">{{ $emp->unit }}</td>
+                        <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-300">{{ $emp->unit ?? '—' }}</td>
                         <td class="px-5 py-3">
                             <span class="px-2 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                                 {{ $emp->role->display_name }}

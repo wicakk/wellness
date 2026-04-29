@@ -12,6 +12,7 @@ use App\Http\Controllers\{
     ScheduleController,
     ProfileController,
     QuestionnaireController,
+    RoomController,
 };
 
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -40,33 +41,46 @@ Route::middleware(['auth', 'theme'])->group(function () {
 
         Route::middleware('role:admin,wellness_warrior')->group(function () {
 
-            // Employees — named: admin.employees, admin.employees.create, dst.
+            // Employees
             Route::prefix('employees')->name('employees.')->group(function () {
-                Route::get('/',            [EmployeeController::class, 'index'])->name('index');
-                Route::get('/create',      [EmployeeController::class, 'create'])->name('create');
-                Route::post('/',           [EmployeeController::class, 'store'])->name('store');
-                Route::get('/{employee}',  [EmployeeController::class, 'show'])->name('show');
+                Route::get('/',                  [EmployeeController::class, 'index'])->name('index');
+                Route::get('/create',            [EmployeeController::class, 'create'])->name('create');
+                Route::post('/',                 [EmployeeController::class, 'store'])->name('store');
+                Route::get('/{employee}',        [EmployeeController::class, 'show'])->name('show');
                 Route::get('/{employee}/edit',   [EmployeeController::class, 'edit'])->name('edit');
                 Route::put('/{employee}',        [EmployeeController::class, 'update'])->name('update');
                 Route::patch('/{employee}',      [EmployeeController::class, 'update']);
                 Route::delete('/{employee}',     [EmployeeController::class, 'destroy'])->name('destroy');
             });
 
-            // Questionnaire — named: admin.questionnaire.index, dst.
+            // Questionnaire
             Route::prefix('questionnaire')->name('questionnaire.')->group(function () {
-                Route::get('/',                                               [QuestionnaireController::class, 'index'])->name('index');
-                Route::get('/create',                                         [QuestionnaireController::class, 'create'])->name('create');
-                Route::post('/',                                              [QuestionnaireController::class, 'store'])->name('store');
-                Route::get('/{questionnaire}',                                [QuestionnaireController::class, 'show'])->name('show');
-                Route::get('/{questionnaire}/edit',                           [QuestionnaireController::class, 'edit'])->name('edit');
-                Route::put('/{questionnaire}',                                [QuestionnaireController::class, 'update'])->name('update');
-                Route::delete('/{questionnaire}',                             [QuestionnaireController::class, 'destroy'])->name('destroy');
-                Route::patch('/{questionnaire}/toggle',                       [QuestionnaireController::class, 'toggleActive'])->name('toggle');
-                Route::post('/{questionnaire}/questions',                     [QuestionnaireController::class, 'storeQuestion'])->name('questions.store');
-                Route::put('/{questionnaire}/questions/{question}',           [QuestionnaireController::class, 'updateQuestion'])->name('questions.update');
-                Route::delete('/{questionnaire}/questions/{question}',        [QuestionnaireController::class, 'destroyQuestion'])->name('questions.destroy');
-                Route::post('/{questionnaire}/questions/reorder',             [QuestionnaireController::class, 'reorderQuestions'])->name('questions.reorder');
+                Route::get('/',                                                [QuestionnaireController::class, 'index'])->name('index');
+                Route::get('/create',                                          [QuestionnaireController::class, 'create'])->name('create');
+                Route::post('/',                                               [QuestionnaireController::class, 'store'])->name('store');
+                Route::get('/{questionnaire}',                                 [QuestionnaireController::class, 'show'])->name('show');
+                Route::get('/{questionnaire}/edit',                            [QuestionnaireController::class, 'edit'])->name('edit');
+                Route::put('/{questionnaire}',                                 [QuestionnaireController::class, 'update'])->name('update');
+                Route::delete('/{questionnaire}',                              [QuestionnaireController::class, 'destroy'])->name('destroy');
+                Route::patch('/{questionnaire}/toggle',                        [QuestionnaireController::class, 'toggleActive'])->name('toggle');
+                Route::post('/{questionnaire}/questions',                      [QuestionnaireController::class, 'storeQuestion'])->name('questions.store');
+                Route::put('/{questionnaire}/questions/{question}',            [QuestionnaireController::class, 'updateQuestion'])->name('questions.update');
+                Route::delete('/{questionnaire}/questions/{question}',         [QuestionnaireController::class, 'destroyQuestion'])->name('questions.destroy');
+                Route::post('/{questionnaire}/questions/reorder',              [QuestionnaireController::class, 'reorderQuestions'])->name('questions.reorder');
                 Route::post('/{questionnaire}/questions/{question}/duplicate', [QuestionnaireController::class, 'duplicateQuestion'])->name('questions.duplicate');
+            });
+
+            // Master Ruangan
+            Route::prefix('rooms')->name('rooms.')->group(function () {
+                Route::get('/',                [RoomController::class, 'index'])->name('index');
+                Route::get('/create',          [RoomController::class, 'create'])->name('create');
+                Route::post('/',               [RoomController::class, 'store'])->name('store');
+                Route::get('/{room}',          [RoomController::class, 'show'])->name('show');
+                Route::get('/{room}/edit',     [RoomController::class, 'edit'])->name('edit');
+                Route::put('/{room}',          [RoomController::class, 'update'])->name('update');
+                Route::patch('/{room}',        [RoomController::class, 'update']);
+                Route::delete('/{room}',       [RoomController::class, 'destroy'])->name('destroy');
+                Route::patch('/{room}/toggle', [RoomController::class, 'toggleActive'])->name('toggle');
             });
         });
 

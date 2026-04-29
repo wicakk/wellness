@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\Room;
 use Illuminate\Support\Facades\Hash;
 
 class EmployeeController extends Controller
@@ -87,7 +88,8 @@ class EmployeeController extends Controller
     {
         $roles = Role::all();
         $units = User::distinct()->pluck('unit')->filter()->values();
-        return view('employees.edit', compact('employee', 'roles', 'units'));
+        $rooms = Room::orderBy('name')->get();
+        return view('employees.edit', compact('employee', 'roles', 'units', 'rooms'));
     }
 
     public function update(Request $request, User $employee)
