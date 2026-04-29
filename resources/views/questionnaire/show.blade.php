@@ -131,13 +131,13 @@
                                     @endif
 
                                     @if($question->options)
-                                        <div class="flex gap-1.5 flex-wrap">
-                                            @foreach($question->options as $val => $label)
-                                            <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] text-slate-500">
-                                                {{ $val == 0 ? 'Abakan' : $val }}: {{ $label }}
-                                            </span>
-                                            @endforeach
-                                        </div>
+                                    <div class="flex gap-1.5 flex-wrap">
+                                        @foreach($question->options as $val => $label)
+                                        <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] text-slate-500">
+                                            {{ $val }}: {{ $label }}
+                                        </span>
+                                        @endforeach
+                                    </div>
                                     @endif
                                 </div>
                             </div>
@@ -296,12 +296,12 @@ function questionFields(cfg) {
         maxScore: cfg.maxScore || 5,
         options:  cfg.options  && cfg.options.length
                     ? [...cfg.options]
-                    : DEFAULT_LABELS.slice(1, (cfg.maxScore || 5) + 1),
+                    : DEFAULT_LABELS.slice(0, cfg.maxScore || 4),
 
         get computedMaxScore() {
             if (this.type === 'boolean')   return 1;
             if (this.type === 'open_text') return 0;
-            return this.options.length - 1;
+            return this.options.length;   // 1-based: maks = jumlah pilihan
         },
 
         init() {
@@ -323,24 +323,24 @@ function questionFields(cfg) {
         },
 
         _syncOptionsToMax() {
-            const target = parseInt(this.maxScore) + 1;
+            const target = parseInt(this.maxScore); // 1-based
             while (this.options.length < target) {
                 this.options.push(DEFAULT_LABELS[this.options.length] || '');
             }
             if (this.options.length > target) {
-                this.options = this.options.slice(1, target);
+                this.options = this.options.slice(0, target);
             }
         },
 
         addOption() {
             this.options.push(DEFAULT_LABELS[this.options.length] || '');
-            this.maxScore = this.options.length - 1;
+            this.maxScore = this.options.length;
         },
 
         removeOption(idx) {
             if (this.options.length <= 1) return;
             this.options.splice(idx, 1);
-            this.maxScore = this.options.length - 1;
+            this.maxScore = this.options.length;
         },
     };
 }

@@ -1,26 +1,250 @@
-<div
-    x-data="{
-        type: '{{ $q->type ?? 'scale' }}',
-        options: @js(
-            $q
-                ? array_values($q->options ?? ['Jarang', 'Kadang-kadang', 'Sering', 'Selalu'])
-                : ['Jarang', 'Kadang-kadang', 'Sering', 'Selalu']
-        ),
+{{--
+    Partial: questionnaire/partials/question-fields.blade.php
+    Dipakai di:
+      - Edit mode (inline) → $q = $question, $prefix = 'edit-{id}'
+      - Tambah soal baru   → $q = null,       $prefix = 'new'
 
-        get maxScore() {
+    Variabel:
+      $q      – model Question atau null
+      $prefix – string unik untuk id HTML agar tidak tabrakan
+--}}
+
+@php
+    $isEdit     = isset($q) && $q !== null;
+    $qType      = $isEdit ? $q->type      : 'scale';
+    $qText      = $isEdit ? $q->question_text : '';
+    $qMaxScore  = $isEdit ? $q->max_score  : 5;
+    $qOptions   = $isEdit && $q->options ? $q->options : [];   // [value => label]
+    $pfx        = $prefix ?? 'qf';
+@endphp
+
+<div
+    x-data="questionFields({
+        type:        '{{ $qType }}',
+        maxScore:    {{ $qMaxScore }},
+        options:     {{ json_encode(array_values($qOptions)) }},
+        isBoolean:   {{ $qType === 'boolean' ? 'true' : 'false' }}
+    })"
+    x-init="init()"
+    class="space-y-4"
+>
+    {{-- ── Teks Soal ─────────────────────────────────────────── --}}
+    <div>
+        <label class="block text-xs font-medium mb-1.5">
+            Teks Soal <span class="text-red-500">*</span>
+        </label>
+        <textarea
+            name="question_text"
+            rows="3"
+            required
+            placeholder="Contoh: Saya merasa sulit berkonsentrasi..."
+            class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700
+                   bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2
+                   focus:ring-teal-500 resize-none"
+        >{{ $qText }}</textarea>
+    </div>
+
+    {{-- ── Tipe Soal ─────────────────────────────────────────── --}}
+    <div>
+        <label class="block text-xs font-medium mb-1.5">
+            Tipe Soal <span class="text-red-500">*</span>
+        </label>
+        <div class="grid grid-cols-3 gap-2">
+
+            {{-- Skala --}}
+            <label class="cursor-pointer">
+                <input type="radio" value="scale" x-model="type" class="sr-only peer"
+                       @change="onTypeChange">
+                <div class="text-center p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700
+                            peer-checked:border-teal-500 peer-checked:bg-teal-50 dark:peer-checked:bg-teal-900/20
+                            transition-all cursor-pointer">
+                    <div class="mb-0.5 flex justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <div class="text-xs font-medium">Skala</div>
+                </div>
+            </label>
+
+            {{-- Ya/Tidak --}}
+            <label class="cursor-pointer">
+                <input type="radio" value="boolean" x-model="type" class="sr-only peer"
+                       @change="onTypeChange">
+                <div class="text-center p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700
+                            peer-checked:border-teal-500 peer-checked:bg-teal-50 dark:peer-checked:bg-teal-900/20
+                            transition-all cursor-pointer">
+                    <div class="mb-0.5 flex justify-center gap-0.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div class="text-xs font-medium">Ya/Tidak</div>
+                </div>
+            </label>
+
+            {{-- Teks Bebas --}}
+            <label class="cursor-pointer">
+                <input type="radio" value="open_text" x-model="type" class="sr-only peer"
+                       @change="onTypeChange">
+                <div class="text-center p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700
+                            peer-checked:border-teal-500 peer-checked:bg-teal-50 dark:peer-checked:bg-teal-900/20
+                            transition-all cursor-pointer">
+                    <div class="mb-0.5 flex justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                    </div>
+                    <div class="text-xs font-medium">Teks</div>
+                </div>
+            </label>
+        </div>
+
+        {{-- hidden field type untuk submit --}}
+        <input type="hidden" name="type" x-bind:value="type">
+    </div>
+
+    {{-- ── Skala: Skor Maks + Pilihan ────────────────────────── --}}
+    <div x-show="type === 'scale'" x-cloak class="space-y-3">
+
+        {{-- Skor Maksimum --}}
+        <div>
+            <label class="block text-xs font-medium mb-1.5">Skor Maksimum</label>
+            <input
+                type="number"
+                x-model.number="maxScore"
+                @input="syncMaxScore"
+                min="1" max="20"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700
+                       bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+        </div>
+
+        {{-- Label Pilihan Jawaban --}}
+        <div>
+            <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-medium">Label Pilihan Jawaban</label>
+                <span class="text-[10px] text-slate-400">
+                    Skor maks: <strong x-text="maxScore"></strong>
+                </span>
+            </div>
+
+            <div class="space-y-2" id="{{ $pfx }}-options-list">
+                <template x-for="(opt, idx) in options" :key="idx">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 bg-slate-100 dark:bg-slate-700 rounded text-xs flex items-center justify-center font-mono flex-shrink-0"
+                              x-text="idx + 1"></span>
+                        <input
+                            type="text"
+                            :name="`options[${idx + 1}]`"
+                            x-model="options[idx]"
+                            :placeholder="`Label untuk nilai ${idx + 1}`"
+                            class="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700
+                                   bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        >
+                        <button
+                            type="button"
+                            @click="removeOption(idx)"
+                            x-show="options.length > 1"
+                            class="p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400
+                                   transition-colors flex-shrink-0"
+                            title="Hapus pilihan"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Tambah Pilihan --}}
+            <button
+                type="button"
+                @click="addOption"
+                class="mt-2 w-full py-2 border border-dashed border-slate-300 dark:border-slate-600
+                       rounded-xl text-xs text-slate-400 hover:text-teal-600 hover:border-teal-400
+                       dark:hover:text-teal-400 dark:hover:border-teal-600 transition-colors"
+            >
+                + Tambah Pilihan
+            </button>
+        </div>
+    </div>
+
+    {{-- ── Boolean: tampilan info ─────────────────────────────── --}}
+    <div x-show="type === 'boolean'" x-cloak
+         class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+        <p class="text-xs text-purple-600 dark:text-purple-400 font-medium mb-2">Pilihan otomatis:</p>
+        <div class="flex gap-2">
+            <span class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-700 rounded-lg text-xs">0 — Tidak</span>
+            <span class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-700 rounded-lg text-xs">1 — Ya</span>
+        </div>
+        <input type="hidden" name="options[0]" value="Tidak">
+        <input type="hidden" name="options[1]" value="Ya">
+    </div>
+
+    {{-- ── Open Text: info saja ──────────────────────────────── --}}
+    <div x-show="type === 'open_text'" x-cloak
+         class="p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
+        <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Responden mengisi jawaban bebas. Tidak memiliki skor.
+        </p>
+    </div>
+
+    {{-- Hidden max_score – ditulis ulang saat submit via JS di bawah --}}
+    <input type="hidden" name="max_score" :value="computedMaxScore">
+
+</div>
+
+{{-- ── Alpine component (definisi sekali, dipakai semua instance) ── --}}
+@once
+@push('scripts')
+<script>
+/**
+ * questionFields(config)
+ * config = { type, maxScore, options: string[], isBoolean }
+ *
+ * Konvensi options:
+ *   - scale   → array label per nilai, index = nilai (0 .. maxScore)
+ *   - boolean → ['Tidak', 'Ya']
+ *   - open_text → []
+ *
+ * computedMaxScore dipakai sebagai hidden max_score:
+ *   scale     → options.length - 1
+ *   boolean   → 1
+ *   open_text → 0
+ */
+function questionFields(cfg) {
+    const DEFAULT_LABELS = [
+        'Tidak pernah','Jarang','Kadang-kadang','Sering','Selalu',
+        'Sangat sering','Hampir selalu','Selalu'
+    ];
+
+    return {
+        type:     cfg.type     || 'scale',
+        maxScore: cfg.maxScore || 5,
+        options:  cfg.options  && cfg.options.length
+                    ? [...cfg.options]
+                    : DEFAULT_LABELS.slice(0, cfg.maxScore || 4),
+
+        get computedMaxScore() {
             if (this.type === 'boolean')   return 1;
             if (this.type === 'open_text') return 0;
-            return this.options.length;   {{-- skor mulai 1, jadi max = jumlah opsi --}}
+            return this.options.length;   // scale: index mulai 1, jadi maks = jumlah option
         },
 
-        addOption() {
-            if (this.options.length >= 10) return;
-            this.options.push('');
-        },
-
-        removeOption(index) {
-            if (this.options.length <= 1) return;
-            this.options.splice(index, 1);
+        init() {
+            // pastikan jumlah options sesuai maxScore saat pertama load (scale)
+            if (this.type === 'scale') this._syncOptionsToMax();
         },
 
         onTypeChange() {
@@ -28,132 +252,39 @@
                 this.options = ['Tidak', 'Ya'];
             } else if (this.type === 'open_text') {
                 this.options = [];
+            } else {
+                // kembali ke scale – rebuild dari maxScore
+                this._syncOptionsToMax();
             }
-        }
-    }"
-    class="space-y-3"
->
-    {{-- ── Teks Soal ──────────────────────────────────────────────── --}}
-    <div>
-        <label class="block text-xs font-medium mb-1">Teks Soal</label>
-        <textarea
-            name="question_text"
-            rows="2"
-            required
-            class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700
-                   bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2
-                   focus:ring-teal-500 resize-none"
-        >{{ $q->question_text ?? '' }}</textarea>
-    </div>
+        },
 
-    {{-- ── Tipe Soal ───────────────────────────────────────────────── --}}
-    <div>
-        <label class="block text-xs font-medium mb-1">Tipe Soal</label>
-        <div class="flex gap-2">
-            @foreach(['scale' => 'Skala', 'boolean' => 'Ya/Tidak', 'open_text' => 'Teks'] as $val => $label)
-            <label class="cursor-pointer">
-                <input type="radio" name="type" value="{{ $val }}"
-                       x-model="type" @change="onTypeChange()"
-                       class="sr-only peer">
-                <div class="px-3 py-1.5 rounded-lg text-xs border border-slate-200 dark:border-slate-700
-                            peer-checked:border-teal-500 peer-checked:bg-teal-50 dark:peer-checked:bg-teal-900/20
-                            transition-all cursor-pointer font-medium select-none">
-                    {{ $label }}
-                </div>
-            </label>
-            @endforeach
-        </div>
-    </div>
+        syncMaxScore() {
+            // Dipanggil saat user ubah angka skor maks
+            this._syncOptionsToMax();
+        },
 
-    {{-- ── SCALE ──────────────────────────────────────────────────── --}}
-    <div x-show="type === 'scale'" x-transition class="space-y-2">
+        _syncOptionsToMax() {
+            const target = parseInt(this.maxScore); // 1-based: maxScore = jumlah pilihan
+            while (this.options.length < target) {
+                this.options.push(DEFAULT_LABELS[this.options.length] || '');
+            }
+            if (this.options.length > target) {
+                this.options = this.options.slice(0, target);
+            }
+        },
 
-        {{-- hidden max_score: aktif hanya saat scale --}}
-        <input type="hidden" name="max_score" :value="maxScore" :disabled="type !== 'scale'">
+        addOption() {
+            this.options.push(DEFAULT_LABELS[this.options.length] || '');
+            this.maxScore = this.options.length;
+        },
 
-        {{-- Header --}}
-        <div class="flex items-center justify-between">
-            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
-                Pilihan Jawaban
-            </label>
-            <span class="text-[10px] text-slate-400">
-                Skor maks:
-                <span class="font-semibold text-teal-600 dark:text-teal-400" x-text="maxScore"></span>
-            </span>
-        </div>
-
-        {{-- Daftar opsi — skor mulai dari 1 --}}
-        <div class="space-y-1.5">
-            <template x-for="(option, index) in options" :key="index">
-                <div class="flex items-center gap-1.5">
-
-                    {{-- Badge skor: index + 1 --}}
-                    <span
-                        class="w-5 h-5 rounded bg-teal-50 dark:bg-teal-900/30 text-[10px] font-mono
-                               text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0"
-                        x-text="index + 1"
-                    ></span>
-
-                    {{-- Input label — name pakai index+1 agar server terima skor 1..N --}}
-                    <input
-                        type="text"
-                        :name="`options[${index + 1}]`"
-                        x-model="options[index]"
-                        :placeholder="`Label untuk skor ${index + 1}`"
-                        :disabled="type !== 'scale'"
-                        class="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700
-                               bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-1
-                               focus:ring-teal-500 transition"
-                    >
-
-                    {{-- Tombol hapus --}}
-                    <button
-                        type="button"
-                        @click="removeOption(index)"
-                        :disabled="options.length <= 1"
-                        class="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-md transition-all"
-                        :class="options.length <= 1
-                            ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed'
-                            : 'text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer'"
-                        title="Hapus pilihan"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
-                            <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                </div>
-            </template>
-        </div>
-
-        {{-- Tombol tambah --}}
-        <button
-            type="button"
-            @click="addOption()"
-            :disabled="options.length >= 10"
-            class="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg
-                   border border-dashed border-slate-300 dark:border-slate-600 text-xs text-slate-400
-                   hover:border-teal-400 hover:text-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/10
-                   disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
-                <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/>
-            </svg>
-            Tambah Pilihan
-        </button>
-    </div>
-
-    {{-- ── BOOLEAN ─────────────────────────────────────────────────── --}}
-    <div x-show="type === 'boolean'" x-transition>
-        <p class="text-xs text-slate-400 mb-2">Pilihan: Tidak (0) / Ya (1)</p>
-        <input type="hidden" name="max_score"   value="1"     :disabled="type !== 'boolean'">
-        <input type="hidden" name="options[0]"  value="Tidak" :disabled="type !== 'boolean'">
-        <input type="hidden" name="options[1]"  value="Ya"    :disabled="type !== 'boolean'">
-    </div>
-
-    {{-- ── OPEN TEXT ────────────────────────────────────────────────── --}}
-    <div x-show="type === 'open_text'" x-transition>
-        <p class="text-xs text-slate-400">Jawaban teks bebas — tidak ada skor</p>
-        <input type="hidden" name="max_score" value="0" :disabled="type !== 'open_text'">
-    </div>
-
-</div>
+        removeOption(idx) {
+            if (this.options.length <= 1) return;
+            this.options.splice(idx, 1);
+            this.maxScore = this.options.length;
+        },
+    };
+}
+</script>
+@endpush
+@endonce
