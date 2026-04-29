@@ -38,8 +38,8 @@
                 <select name="unit" class="px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500">
                     <option value="">Semua Unit</option>
                     @foreach($units as $unit)
-                    <option value="{{ $unit->name }}" {{ request('unit') === $unit->name ? 'selected' : '' }}>
-                        {{ $unit->name }}
+                    <option value="{{ $unit }}" {{ request('unit') === $unit ? 'selected' : '' }}>
+                        {{ $unit }}
                     </option>
                     @endforeach
                 </select>
