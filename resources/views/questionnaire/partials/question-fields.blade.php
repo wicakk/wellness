@@ -1,38 +1,60 @@
 <div
     x-data="{
         type: '{{ $q->type ?? 'scale' }}',
-        options: @js(array_values($q->options ?? ['Tidak pernah', 'Jarang', 'Kadang-kadang', 'Sering', 'Selalu'])),
+        options: @js(
+            $q
+                ? array_values($q->options ?? ['Jarang', 'Kadang-kadang', 'Sering', 'Selalu'])
+                : ['Jarang', 'Kadang-kadang', 'Sering', 'Selalu']
+        ),
 
         get maxScore() {
-            return this.options.length - 1;
+            if (this.type === 'boolean')   return 1;
+            if (this.type === 'open_text') return 0;
+            return this.options.length;   {{-- skor mulai 1, jadi max = jumlah opsi --}}
         },
 
         addOption() {
-            if (this.options.length >= 11) return;
+            if (this.options.length >= 10) return;
             this.options.push('');
         },
 
         removeOption(index) {
-            if (this.options.length <= 2) return;
+            if (this.options.length <= 1) return;
             this.options.splice(index, 1);
+        },
+
+        onTypeChange() {
+            if (this.type === 'boolean') {
+                this.options = ['Tidak', 'Ya'];
+            } else if (this.type === 'open_text') {
+                this.options = [];
+            }
         }
     }"
     class="space-y-3"
 >
-    {{-- Teks Soal --}}
+    {{-- ── Teks Soal ──────────────────────────────────────────────── --}}
     <div>
         <label class="block text-xs font-medium mb-1">Teks Soal</label>
-        <textarea name="question_text" rows="2" required
-                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none">{{ $q->question_text ?? '' }}</textarea>
+        <textarea
+            name="question_text"
+            rows="2"
+            required
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700
+                   bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2
+                   focus:ring-teal-500 resize-none"
+        >{{ $q->question_text ?? '' }}</textarea>
     </div>
 
-    {{-- Tipe Soal --}}
+    {{-- ── Tipe Soal ───────────────────────────────────────────────── --}}
     <div>
         <label class="block text-xs font-medium mb-1">Tipe Soal</label>
         <div class="flex gap-2">
             @foreach(['scale' => 'Skala', 'boolean' => 'Ya/Tidak', 'open_text' => 'Teks'] as $val => $label)
             <label class="cursor-pointer">
-                <input type="radio" name="type" value="{{ $val }}" x-model="type" class="sr-only peer">
+                <input type="radio" name="type" value="{{ $val }}"
+                       x-model="type" @change="onTypeChange()"
+                       class="sr-only peer">
                 <div class="px-3 py-1.5 rounded-lg text-xs border border-slate-200 dark:border-slate-700
                             peer-checked:border-teal-500 peer-checked:bg-teal-50 dark:peer-checked:bg-teal-900/20
                             transition-all cursor-pointer font-medium select-none">
@@ -43,47 +65,54 @@
         </div>
     </div>
 
-    {{-- ── SCALE ─────────────────────────────────────────────────────── --}}
+    {{-- ── SCALE ──────────────────────────────────────────────────── --}}
     <div x-show="type === 'scale'" x-transition class="space-y-2">
 
-        <input type="hidden" name="max_score" :value="maxScore">
+        {{-- hidden max_score: aktif hanya saat scale --}}
+        <input type="hidden" name="max_score" :value="maxScore" :disabled="type !== 'scale'">
 
         {{-- Header --}}
         <div class="flex items-center justify-between">
-            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Pilihan Jawaban</label>
+            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
+                Pilihan Jawaban
+            </label>
             <span class="text-[10px] text-slate-400">
-                Skor maks: <span class="font-semibold text-teal-600 dark:text-teal-400" x-text="maxScore"></span>
+                Skor maks:
+                <span class="font-semibold text-teal-600 dark:text-teal-400" x-text="maxScore"></span>
             </span>
         </div>
 
-        {{-- Daftar opsi --}}
+        {{-- Daftar opsi — skor mulai dari 1 --}}
         <div class="space-y-1.5">
             <template x-for="(option, index) in options" :key="index">
                 <div class="flex items-center gap-1.5">
 
-                    {{-- Badge skor --}}
-                    <span class="w-5 h-5 rounded bg-slate-100 dark:bg-slate-700 text-[10px] font-mono
-                                 text-slate-500 flex items-center justify-center flex-shrink-0"
-                          x-text="index"></span>
+                    {{-- Badge skor: index + 1 --}}
+                    <span
+                        class="w-5 h-5 rounded bg-teal-50 dark:bg-teal-900/30 text-[10px] font-mono
+                               text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0"
+                        x-text="index + 1"
+                    ></span>
 
-                    {{-- Input --}}
+                    {{-- Input label — name pakai index+1 agar server terima skor 1..N --}}
                     <input
                         type="text"
-                        :name="`options[${index}]`"
+                        :name="`options[${index + 1}]`"
                         x-model="options[index]"
-                        :placeholder="`Label untuk ${index}`"
+                        :placeholder="`Label untuk skor ${index + 1}`"
+                        :disabled="type !== 'scale'"
                         class="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700
                                bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-1
                                focus:ring-teal-500 transition"
                     >
 
-                    {{-- Tombol hapus — selalu tampil, merah jika bisa dihapus --}}
+                    {{-- Tombol hapus --}}
                     <button
                         type="button"
                         @click="removeOption(index)"
-                        :disabled="options.length <= 2"
+                        :disabled="options.length <= 1"
                         class="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-md transition-all"
-                        :class="options.length <= 2
+                        :class="options.length <= 1
                             ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed'
                             : 'text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer'"
                         title="Hapus pilihan"
@@ -100,10 +129,9 @@
         <button
             type="button"
             @click="addOption()"
-            :disabled="options.length >= 11"
+            :disabled="options.length >= 10"
             class="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg
-                   border border-dashed border-slate-300 dark:border-slate-600
-                   text-xs text-slate-400
+                   border border-dashed border-slate-300 dark:border-slate-600 text-xs text-slate-400
                    hover:border-teal-400 hover:text-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/10
                    disabled:opacity-40 disabled:cursor-not-allowed transition-all"
         >
@@ -114,18 +142,18 @@
         </button>
     </div>
 
-    {{-- ── BOOLEAN ──────────────────────────────────────────────────── --}}
+    {{-- ── BOOLEAN ─────────────────────────────────────────────────── --}}
     <div x-show="type === 'boolean'" x-transition>
-        <p class="text-xs text-slate-400">Pilihan: Tidak (0) / Ya (1)</p>
-        <input type="hidden" name="max_score" value="1">
-        <input type="hidden" name="options[0]" value="Tidak">
-        <input type="hidden" name="options[1]" value="Ya">
+        <p class="text-xs text-slate-400 mb-2">Pilihan: Tidak (0) / Ya (1)</p>
+        <input type="hidden" name="max_score"   value="1"     :disabled="type !== 'boolean'">
+        <input type="hidden" name="options[0]"  value="Tidak" :disabled="type !== 'boolean'">
+        <input type="hidden" name="options[1]"  value="Ya"    :disabled="type !== 'boolean'">
     </div>
 
-    {{-- ── OPEN TEXT ─────────────────────────────────────────────────── --}}
+    {{-- ── OPEN TEXT ────────────────────────────────────────────────── --}}
     <div x-show="type === 'open_text'" x-transition>
         <p class="text-xs text-slate-400">Jawaban teks bebas — tidak ada skor</p>
-        <input type="hidden" name="max_score" value="0">
+        <input type="hidden" name="max_score" value="0" :disabled="type !== 'open_text'">
     </div>
 
 </div>

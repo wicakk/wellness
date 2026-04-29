@@ -296,7 +296,7 @@ function questionFields(cfg) {
         maxScore: cfg.maxScore || 5,
         options:  cfg.options  && cfg.options.length
                     ? [...cfg.options]
-                    : DEFAULT_LABELS.slice(0, (cfg.maxScore || 5) + 1),
+                    : DEFAULT_LABELS.slice(1, (cfg.maxScore || 5) + 1),
 
         get computedMaxScore() {
             if (this.type === 'boolean')   return 1;
@@ -328,7 +328,7 @@ function questionFields(cfg) {
                 this.options.push(DEFAULT_LABELS[this.options.length] || '');
             }
             if (this.options.length > target) {
-                this.options = this.options.slice(0, target);
+                this.options = this.options.slice(1, target);
             }
         },
 
