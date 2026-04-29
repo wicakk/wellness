@@ -134,7 +134,7 @@
                                     <div class="flex gap-1.5 flex-wrap">
                                         @foreach($question->options as $val => $label)
                                         <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] text-slate-500">
-                                            {{ $val }}: {{ $label }}
+                                            {{ $val + 1 }}: {{ $label }}
                                         </span>
                                         @endforeach
                                     </div>
