@@ -131,13 +131,13 @@
                                     @endif
 
                                     @if($question->options)
-                                    <div class="flex gap-1.5 flex-wrap">
-                                        @foreach($question->options as $val => $label)
-                                        <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] text-slate-500">
-                                            {{ $val }}: {{ $label }}
-                                        </span>
-                                        @endforeach
-                                    </div>
+                                        <div class="flex gap-1.5 flex-wrap">
+                                            @foreach($question->options as $val => $label)
+                                            <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] text-slate-500">
+                                                {{ $val == 0 ? 'Abakan' : $val }}: {{ $label }}
+                                            </span>
+                                            @endforeach
+                                        </div>
                                     @endif
                                 </div>
                             </div>
