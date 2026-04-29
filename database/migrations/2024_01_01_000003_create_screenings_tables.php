@@ -57,10 +57,11 @@ return new class extends Migration
         Schema::create('risk_thresholds', function (Blueprint $table) {
             $table->id();
             $table->foreignId('questionnaire_id')->constrained()->onDelete('cascade');
-            $table->string('level'); // normal, ringan, sedang, tinggi
+            $table->string('level'); // normal, ringan, sedang, tinggi, atau custom
+            $table->string('label')->nullable(); // nama tampilan, contoh: "Risiko Tinggi"
             $table->integer('score_min');
             $table->integer('score_max');
-            $table->string('color_code'); // #22c55e, #eab308, #f97316, #ef4444
+            $table->string('color_code'); // #22c55e, #eab308, #f97316, #ef4444, dll
             $table->text('description')->nullable();
             $table->timestamps();
         });

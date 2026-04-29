@@ -29,13 +29,15 @@ class QuestionnaireController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'        => 'required|string|max:255|unique:questionnaires,name',
-            'description' => 'nullable|string|max:1000',
-            'is_active'   => 'boolean',
+            'name'                    => 'required|string|max:255|unique:questionnaires,name',
+            'description'             => 'nullable|string|max:1000',
+            'is_active'               => 'boolean',
 
-            // Risk thresholds
-            'thresholds'              => 'required|array|size:4',
-            'thresholds.*.level'      => 'required|in:normal,ringan,sedang,tinggi',
+            // Threshold dinamis: minimal 1, tidak ada batasan jumlah
+            'thresholds'              => 'required|array|min:1',
+            'thresholds.*.label'      => 'required|string|max:100',
+            'thresholds.*.level'      => 'required|string|max:100',
+            'thresholds.*.color'      => 'nullable|string|max:20',
             'thresholds.*.score_min'  => 'required|integer|min:0',
             'thresholds.*.score_max'  => 'required|integer|min:0',
             'thresholds.*.description'=> 'nullable|string|max:255',
@@ -48,20 +50,14 @@ class QuestionnaireController extends Controller
                 'is_active'   => $request->boolean('is_active', true),
             ]);
 
-            $colors = [
-                'normal' => '#22c55e',
-                'ringan' => '#eab308',
-                'sedang' => '#f97316',
-                'tinggi' => '#ef4444',
-            ];
-
             foreach ($request->thresholds as $t) {
                 RiskThreshold::create([
                     'questionnaire_id' => $questionnaire->id,
                     'level'            => $t['level'],
+                    'label'            => $t['label'],
                     'score_min'        => $t['score_min'],
                     'score_max'        => $t['score_max'],
-                    'color_code'       => $colors[$t['level']],
+                    'color_code'       => $t['color'] ?? '#64748b',
                     'description'      => $t['description'] ?? null,
                 ]);
             }
@@ -90,11 +86,15 @@ class QuestionnaireController extends Controller
     public function update(Request $request, Questionnaire $questionnaire)
     {
         $request->validate([
-            'name'        => 'required|string|max:255|unique:questionnaires,name,' . $questionnaire->id,
-            'description' => 'nullable|string|max:1000',
-            'is_active'   => 'boolean',
-            'thresholds'              => 'required|array|size:4',
-            'thresholds.*.level'      => 'required|in:normal,ringan,sedang,tinggi',
+            'name'                    => 'required|string|max:255|unique:questionnaires,name,' . $questionnaire->id,
+            'description'             => 'nullable|string|max:1000',
+            'is_active'               => 'boolean',
+
+            // Threshold dinamis
+            'thresholds'              => 'required|array|min:1',
+            'thresholds.*.label'      => 'required|string|max:100',
+            'thresholds.*.level'      => 'required|string|max:100',
+            'thresholds.*.color'      => 'nullable|string|max:20',
             'thresholds.*.score_min'  => 'required|integer|min:0',
             'thresholds.*.score_max'  => 'required|integer|min:0',
             'thresholds.*.description'=> 'nullable|string|max:255',
@@ -107,18 +107,19 @@ class QuestionnaireController extends Controller
                 'is_active'   => $request->boolean('is_active'),
             ]);
 
-            $colors = ['normal'=>'#22c55e','ringan'=>'#eab308','sedang'=>'#f97316','tinggi'=>'#ef4444'];
+            // Hapus semua threshold lama, ganti dengan yang baru
+            $questionnaire->riskThresholds()->delete();
 
             foreach ($request->thresholds as $t) {
-                RiskThreshold::updateOrCreate(
-                    ['questionnaire_id' => $questionnaire->id, 'level' => $t['level']],
-                    [
-                        'score_min'   => $t['score_min'],
-                        'score_max'   => $t['score_max'],
-                        'color_code'  => $colors[$t['level']],
-                        'description' => $t['description'] ?? null,
-                    ]
-                );
+                RiskThreshold::create([
+                    'questionnaire_id' => $questionnaire->id,
+                    'level'            => $t['level'],
+                    'label'            => $t['label'],
+                    'score_min'        => $t['score_min'],
+                    'score_max'        => $t['score_max'],
+                    'color_code'       => $t['color'] ?? '#64748b',
+                    'description'      => $t['description'] ?? null,
+                ]);
             }
 
             \App\Models\AuditLog::record('questionnaire_updated', 'Questionnaire', $questionnaire->id);
@@ -163,10 +164,8 @@ class QuestionnaireController extends Controller
             'options.*'     => 'required|string|max:100',
         ]);
 
-        // Auto-assign next order number
         $nextOrder = $questionnaire->questions()->max('order') + 1;
 
-        // Build options array: {0: label, 1: label, ...}
         $options = null;
         if ($request->type !== 'open_text') {
             $options = collect($request->options)
@@ -175,10 +174,9 @@ class QuestionnaireController extends Controller
                 ->all();
         }
 
-        // Boolean type: force 2 options (Tidak/Ya) and max_score = 1
         if ($request->type === 'boolean') {
-            $options   = ['0' => 'Tidak', '1' => 'Ya'];
-            $maxScore  = 1;
+            $options  = ['0' => 'Tidak', '1' => 'Ya'];
+            $maxScore = 1;
         } else {
             $maxScore = $request->type === 'open_text' ? 0 : (int) $request->max_score;
         }
@@ -239,14 +237,12 @@ class QuestionnaireController extends Controller
 
     public function destroyQuestion(Questionnaire $questionnaire, Question $question)
     {
-        // Check if question has been answered
         if ($question->answers()->exists()) {
             return back()->with('error', 'Soal tidak bisa dihapus karena sudah ada jawaban.');
         }
 
         $question->delete();
 
-        // Re-number remaining questions
         $questionnaire->questions()->orderBy('order')->each(function ($q, $i) {
             $q->update(['order' => $i + 1]);
         });
@@ -277,7 +273,7 @@ class QuestionnaireController extends Controller
         $newOrder = $questionnaire->questions()->max('order') + 1;
 
         $newQuestion = $question->replicate();
-        $newQuestion->order        = $newOrder;
+        $newQuestion->order         = $newOrder;
         $newQuestion->question_text = $question->question_text . ' (Salinan)';
         $newQuestion->save();
 
