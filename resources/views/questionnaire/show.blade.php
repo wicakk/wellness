@@ -84,9 +84,7 @@
 
             @if($questionnaire->questions->isEmpty())
             <div class="bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-600 p-8 text-center">
-                <div class="text-4xl mb-2">
-                    <svg class="w-8 h-8 mx-auto text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                </div>
+                <svg class="w-8 h-8 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 <p class="text-sm text-slate-500">Belum ada soal. Tambahkan soal pertama →</p>
             </div>
             @else
@@ -184,8 +182,9 @@
                             @csrf @method('PUT')
                             @include('questionnaire.partials.question-fields', ['q' => $question, 'prefix' => 'edit-'.$question->id])
                             <div class="flex gap-2 mt-4">
-                                <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-700 transition-colors">
-                                    <svg class="w-4 h-4 inline flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> Simpan
+                                <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-700 transition-colors flex items-center gap-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                                    Simpan
                                 </button>
                                 <button type="button" @click="editing = false"
                                         class="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-xs hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
@@ -202,122 +201,15 @@
 
         {{-- ── TAMBAH SOAL (kanan) ──────────────────────────────────── --}}
         <div class="lg:col-span-2">
-            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5 sticky top-6"
-                 x-data="{ type: 'scale', optionCount: 5 }">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5 sticky top-6">
                 <h3 class="font-semibold text-sm mb-4 flex items-center gap-2">
                     <span class="w-6 h-6 bg-teal-100 dark:bg-teal-900/30 text-teal-600 rounded-lg flex items-center justify-center text-xs">+</span>
                     Tambah Soal Baru
                 </h3>
 
-                <form action="{{ route('admin.questionnaire.questions.store', $questionnaire) }}" method="POST" class="space-y-4"
-                      x-on:submit="
-                        if (type === 'boolean') {
-                            $el.querySelector('#hidden_max_score').value = '1';
-                        } else if (type === 'open_text') {
-                            $el.querySelector('#hidden_max_score').value = '0';
-                        } else {
-                            $el.querySelector('#hidden_max_score').value = optionCount;
-                        }
-                      ">
+                <form action="{{ route('admin.questionnaire.questions.store', $questionnaire) }}" method="POST" class="space-y-4">
                     @csrf
-
-                    <input type="hidden" name="type" x-bind:value="type">
-                    <input type="hidden" name="max_score" id="hidden_max_score" value="5">
-
-                    {{-- Teks Soal --}}
-                    <div>
-                        <label class="block text-xs font-medium mb-1.5">Teks Soal <span class="text-red-500">*</span></label>
-                        <textarea name="question_text" rows="3" required
-                                  placeholder="Contoh: Saya merasa sulit berkonsentrasi..."
-                                  class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"></textarea>
-                    </div>
-
-                    {{-- Tipe Soal --}}
-                    <div>
-                        <label class="block text-xs font-medium mb-1.5">Tipe Soal <span class="text-red-500">*</span></label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <label class="cursor-pointer">
-                                <input type="radio" value="scale" x-model="type" class="sr-only peer">
-                                <div class="text-center p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-teal-500 peer-checked:bg-teal-50 dark:peer-checked:bg-teal-900/20 transition-all cursor-pointer">
-                                    <div class="mb-0.5 flex justify-center">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                    </div>
-                                    <div class="text-xs font-medium">Skala</div>
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" value="boolean" x-model="type" class="sr-only peer">
-                                <div class="text-center p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-teal-500 peer-checked:bg-teal-50 dark:peer-checked:bg-teal-900/20 transition-all cursor-pointer">
-                                    <div class="mb-0.5 flex justify-center gap-0.5">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </div>
-                                    <div class="text-xs font-medium">Ya/Tidak</div>
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" value="open_text" x-model="type" class="sr-only peer">
-                                <div class="text-center p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-teal-500 peer-checked:bg-teal-50 dark:peer-checked:bg-teal-900/20 transition-all cursor-pointer">
-                                    <div class="mb-0.5 flex justify-center">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                    </div>
-                                    <div class="text-xs font-medium">Teks</div>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    {{-- Scale Options --}}
-                    <template x-if="type === 'scale'">
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-xs font-medium mb-1.5">Skor Maksimum</label>
-                                <input type="number" x-model="optionCount"
-                                       x-on:input="$el.closest('form').querySelector('#hidden_max_score').value = $el.value"
-                                       min="1" max="10"
-                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium mb-2">Label Pilihan Jawaban</label>
-                                <div class="space-y-2">
-                                    <template x-for="i in (parseInt(optionCount) + 1)" :key="i">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-5 h-5 bg-slate-100 dark:bg-slate-700 rounded text-xs flex items-center justify-center font-mono flex-shrink-0"
-                                                  x-text="i - 1"></span>
-                                            <input type="text" :name="`options[${i-1}]`"
-                                                   :placeholder="`Label untuk nilai ${i-1}`"
-                                                   :value="['Tidak pernah','Jarang','Kadang-kadang','Sering','Selalu','Sangat sering','Hampir selalu','Selalu'][i-1] || ''"
-                                                   class="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    {{-- Boolean --}}
-                    <template x-if="type === 'boolean'">
-                        <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-                            <p class="text-xs text-purple-600 dark:text-purple-400 font-medium mb-2">Pilihan otomatis:</p>
-                            <div class="flex gap-2">
-                                <span class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-700 rounded-lg text-xs">0 — Tidak</span>
-                                <span class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-700 rounded-lg text-xs">1 — Ya</span>
-                            </div>
-                            <input type="hidden" name="options[0]" value="Tidak">
-                            <input type="hidden" name="options[1]" value="Ya">
-                        </div>
-                    </template>
-
-                    {{-- Open text --}}
-                    <template x-if="type === 'open_text'">
-                        <div class="p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
-                            <p class="text-xs text-slate-500 dark:text-slate-400">
-                                <svg class="w-4 h-4 inline flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                Responden mengisi jawaban bebas. Tidak memiliki skor.
-                            </p>
-                        </div>
-                    </template>
-
+                    @include('questionnaire.partials.question-fields', ['q' => null, 'prefix' => 'new'])
                     <button type="submit"
                             class="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm">
                         + Tambah Soal
@@ -380,13 +272,77 @@ function questionManager() {
                     });
 
                     items.forEach((item, i) => {
-                        const badge = item.querySelector('.question-item span.rounded-full');
+                        const badge = item.querySelector('span.rounded-full');
                         if (badge) badge.textContent = i + 1;
                     });
                 }
             });
         }
     }
+}
+
+/**
+ * questionFields(config)
+ * Dipakai oleh semua instance form (tambah & edit)
+ */
+const DEFAULT_LABELS = [
+    'Tidak pernah','Jarang','Kadang-kadang','Sering','Selalu',
+    'Sangat sering','Hampir selalu','Selalu'
+];
+
+function questionFields(cfg) {
+    return {
+        type:     cfg.type     || 'scale',
+        maxScore: cfg.maxScore || 5,
+        options:  cfg.options  && cfg.options.length
+                    ? [...cfg.options]
+                    : DEFAULT_LABELS.slice(0, (cfg.maxScore || 5) + 1),
+
+        get computedMaxScore() {
+            if (this.type === 'boolean')   return 1;
+            if (this.type === 'open_text') return 0;
+            return this.options.length - 1;
+        },
+
+        init() {
+            if (this.type === 'scale') this._syncOptionsToMax();
+        },
+
+        onTypeChange() {
+            if (this.type === 'boolean') {
+                this.options = ['Tidak', 'Ya'];
+            } else if (this.type === 'open_text') {
+                this.options = [];
+            } else {
+                this._syncOptionsToMax();
+            }
+        },
+
+        syncMaxScore() {
+            this._syncOptionsToMax();
+        },
+
+        _syncOptionsToMax() {
+            const target = parseInt(this.maxScore) + 1;
+            while (this.options.length < target) {
+                this.options.push(DEFAULT_LABELS[this.options.length] || '');
+            }
+            if (this.options.length > target) {
+                this.options = this.options.slice(0, target);
+            }
+        },
+
+        addOption() {
+            this.options.push(DEFAULT_LABELS[this.options.length] || '');
+            this.maxScore = this.options.length - 1;
+        },
+
+        removeOption(idx) {
+            if (this.options.length <= 1) return;
+            this.options.splice(idx, 1);
+            this.maxScore = this.options.length - 1;
+        },
+    };
 }
 </script>
 @endpush
