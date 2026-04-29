@@ -21,9 +21,15 @@
                 <p class="text-sm text-slate-500 dark:text-slate-400">{{ $questionnaire->description }}</p>
                 @endif
                 <div class="flex flex-wrap gap-4 mt-3 text-xs text-slate-500 dark:text-slate-400">
-                    <span><svg class="w-4 h-4 inline flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> {{ $questionnaire->questions->count() }} soal</span>
+                    <span>
+                        <svg class="w-4 h-4 inline flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        {{ $questionnaire->questions->count() }} soal
+                    </span>
                     <span>{{ $screeningCount }} skrining selesai</span>
-                    <span><svg class="w-4 h-4 inline flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Diperbarui {{ $questionnaire->updated_at->diffForHumans() }}</span>
+                    <span>
+                        <svg class="w-4 h-4 inline flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Diperbarui {{ $questionnaire->updated_at->diffForHumans() }}
+                    </span>
                 </div>
             </div>
             <div class="flex gap-2 flex-shrink-0">
@@ -42,15 +48,21 @@
         <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
             <p class="text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Kategori Risiko</p>
             <div class="flex flex-wrap gap-3">
-                @foreach($questionnaire->riskThresholds->sortBy('score_min') as $t)
+                @forelse($questionnaire->riskThresholds->sortBy('score_min') as $t)
+                @php $color = $t->color_code ?? '#64748b'; @endphp
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs border"
-                     style="border-color:{{ $t->color_code }}22; background:{{ $t->color_code }}11;">
-                    <span class="w-2 h-2 rounded-full" style="background:{{ $t->color_code }}"></span>
-                    <span class="font-semibold" style="color:{{ $t->color_code }}">{{ ucfirst($t->level) }}</span>
+                     style="border-color:{{ $color }}33; background:{{ $color }}11;">
+                    <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:{{ $color }}"></span>
+                    <span class="font-semibold" style="color:{{ $color }}">{{ $t->label ?? ucfirst($t->level) }}</span>
                     <span class="text-slate-500">{{ $t->score_min }}–{{ $t->score_max }}</span>
-                    @if($t->description) <span class="text-slate-400 hidden sm:inline">• {{ $t->description }}</span> @endif
+                    @if($t->description)
+                        <span class="text-slate-400 hidden sm:inline">• {{ $t->description }}</span>
+                    @endif
                 </div>
-                @endforeach
+                @empty
+                <span class="text-xs text-slate-400 italic">Belum ada kategori risiko.</span>
+                @endforelse
+
                 <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-slate-50 dark:bg-slate-700 text-slate-500">
                     Max total skor: <strong class="text-slate-700 dark:text-slate-200 ml-1">
                         {{ $questionnaire->questions->sum('max_score') }}
@@ -63,7 +75,7 @@
     {{-- Daftar Soal + Tambah Soal --}}
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
 
-        {{-- ── DAFTAR SOAL (kiri, lebar) ────────────────────────────── --}}
+        {{-- ── DAFTAR SOAL (kiri, lebar) ──────────────────────────── --}}
         <div class="lg:col-span-3 space-y-3">
             <div class="flex items-center justify-between">
                 <h3 class="font-semibold text-sm">Daftar Soal</h3>
@@ -72,7 +84,9 @@
 
             @if($questionnaire->questions->isEmpty())
             <div class="bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-600 p-8 text-center">
-                <div class="text-4xl mb-2"><svg class="w-4 h-4 inline flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></div>
+                <div class="text-4xl mb-2">
+                    <svg class="w-8 h-8 mx-auto text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </div>
                 <p class="text-sm text-slate-500">Belum ada soal. Tambahkan soal pertama →</p>
             </div>
             @else
@@ -103,8 +117,13 @@
                                 <p class="text-sm font-medium leading-relaxed">{{ $question->question_text }}</p>
 
                                 <div class="flex flex-wrap items-center gap-3 mt-2">
-                                    {{-- Type badge --}}
-                                    @php $typeConfig = ['scale'=>['label'=>'Skala','color'=>'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'],'boolean'=>['label'=>'Ya/Tidak','color'=>'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'],'open_text'=>['label'=>'Teks Bebas','color'=>'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300']]; @endphp
+                                    @php
+                                    $typeConfig = [
+                                        'scale'     => ['label' => 'Skala',      'color' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'],
+                                        'boolean'   => ['label' => 'Ya/Tidak',   'color' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'],
+                                        'open_text' => ['label' => 'Teks Bebas', 'color' => 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'],
+                                    ];
+                                    @endphp
                                     <span class="px-2 py-0.5 rounded text-xs font-medium {{ $typeConfig[$question->type]['color'] ?? '' }}">
                                         {{ $typeConfig[$question->type]['label'] ?? $question->type }}
                                     </span>
@@ -113,7 +132,6 @@
                                     <span class="text-xs text-slate-400">Maks {{ $question->max_score }} poin</span>
                                     @endif
 
-                                    {{-- Options preview --}}
                                     @if($question->options)
                                     <div class="flex gap-1.5 flex-wrap">
                                         @foreach($question->options as $val => $label)
@@ -203,7 +221,6 @@
                       ">
                     @csrf
 
-                    {{-- Hidden inputs yang selalu ada - dikontrol Alpine saat submit --}}
                     <input type="hidden" name="type" x-bind:value="type">
                     <input type="hidden" name="max_score" id="hidden_max_score" value="5">
 
@@ -250,7 +267,7 @@
                         </div>
                     </div>
 
-                    {{-- Scale Options: hanya tampil saat type=scale, gunakan x-if agar tidak ikut submit --}}
+                    {{-- Scale Options --}}
                     <template x-if="type === 'scale'">
                         <div class="space-y-3">
                             <div>
@@ -278,7 +295,7 @@
                         </div>
                     </template>
 
-                    {{-- Boolean: x-if agar hidden input tidak double-submit --}}
+                    {{-- Boolean --}}
                     <template x-if="type === 'boolean'">
                         <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
                             <p class="text-xs text-purple-600 dark:text-purple-400 font-medium mb-2">Pilihan otomatis:</p>
@@ -336,7 +353,6 @@
 @endsection
 
 @push('scripts')
-{{-- SortableJS for drag-and-drop reordering --}}
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 function questionManager() {
@@ -363,7 +379,6 @@ function questionManager() {
                         body: JSON.stringify({ order })
                     });
 
-                    // Update visible numbers
                     items.forEach((item, i) => {
                         const badge = item.querySelector('.question-item span.rounded-full');
                         if (badge) badge.textContent = i + 1;
