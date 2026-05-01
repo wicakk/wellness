@@ -129,12 +129,13 @@
         <div class="mb-6">
             <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-200">Skrining {{ $questionnaire->name }}</h1>
             <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-                <span>Pertanyaan <span class="font-bold text-teal-600" x-text="current + 1"></span> dari {{ $questionnaire->questions->count() }}</span>
-                <span x-text="Math.round(((current + 1) / {{ $questionnaire->questions->count() }}) * 100) + '%'"></span>
+                {{-- FIX: gunakan Math.min agar tidak melebihi total soal saat di halaman catatan --}}
+                <span>Pertanyaan <span class="font-bold text-teal-600" x-text="Math.min(current + 1, {{ $questionnaire->questions->count() }})"></span> dari {{ $questionnaire->questions->count() }}</span>
+                <span x-text="Math.round((Math.min(current + 1, {{ $questionnaire->questions->count() }}) / {{ $questionnaire->questions->count() }}) * 100) + '%'"></span>
             </div>
             <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div class="h-full bg-gradient-to-r from-teal-400 to-emerald-500 rounded-full transition-all duration-500"
-                     :style="'width:' + ((current + 1) / {{ $questionnaire->questions->count() }}) * 100 + '%'"></div>
+                     :style="'width:' + (Math.min(current + 1, {{ $questionnaire->questions->count() }}) / {{ $questionnaire->questions->count() }}) * 100 + '%'"></div>
             </div>
         </div>
 

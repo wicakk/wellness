@@ -11,16 +11,20 @@
         $riskConfig = [
             'normal'  => ['bg'=>'from-green-500 to-emerald-600',
                           'icon'=>'<svg class="w-14 h-14 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
-                          'msg'=>'Kondisi mental kamu baik! Pertahankan pola hidup sehat.'],
+                        //   'msg'=>'Kondisi mental kamu baik! Pertahankan pola hidup sehat.'
+                          ],
             'ringan'  => ['bg'=>'from-yellow-400 to-amber-500',
                           'icon'=>'<svg class="w-14 h-14 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>',
-                          'msg'=>'Ada beberapa tanda yang perlu diperhatikan. Jaga keseimbangan hidupmu.'],
+                        //   'msg'=>'Ada beberapa tanda yang perlu diperhatikan. Jaga keseimbangan hidupmu.'
+                          ],
             'sedang'  => ['bg'=>'from-orange-500 to-amber-600',
                           'icon'=>'<svg class="w-14 h-14 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>',
-                          'msg'=>'Kondisi kamu perlu perhatian lebih. Tim Wellness akan segera menghubungi.'],
+                        //   'msg'=>'Kondisi kamu perlu perhatian lebih. Tim Wellness akan segera menghubungi.'
+                          ],
             'tinggi'  => ['bg'=>'from-red-500 to-rose-600',
                           'icon'=>'<svg class="w-14 h-14 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>',
-                          'msg'=>'Kamu membutuhkan bantuan profesional. Tim kami akan segera menghubungimu.'],
+                        //   'msg'=>'Kamu membutuhkan bantuan profesional. Tim kami akan segera menghubungimu.'
+                          ],
         ];
         $conf = $riskConfig[$screening->risk_level] ?? $riskConfig['normal'];
     @endphp
@@ -30,7 +34,7 @@
         <h2 class="text-2xl font-bold">Risiko {{ ucfirst($screening->risk_level) }}</h2>
         <div class="text-5xl font-black mt-2 mb-1">{{ $screening->total_score }}</div>
         <div class="text-white/80 text-sm mb-4">Total Skor</div>
-        <p class="text-white/90 text-sm max-w-sm mx-auto">{{ $conf['msg'] }}</p>
+        {{-- <p class="text-white/90 text-sm max-w-sm mx-auto">{{ $conf['msg'] }}</p> --}}
     </div>
 
     {{-- Answer Summary --}}
