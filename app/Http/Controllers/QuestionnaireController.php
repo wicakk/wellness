@@ -167,18 +167,19 @@ class QuestionnaireController extends Controller
         $nextOrder = $questionnaire->questions()->max('order') + 1;
 
         $options = null;
-        if ($request->type !== 'open_text') {
-            $options = collect($request->options)
-                ->values()
-                ->mapWithKeys(fn($label, $i) => [$i => $label])
-                ->all();
-        }
-
         if ($request->type === 'boolean') {
+            // Boolean tetap 0/1
             $options  = ['0' => 'Tidak', '1' => 'Ya'];
             $maxScore = 1;
+        } elseif ($request->type !== 'open_text') {
+            // FIX: key dimulai dari 1 agar nilai yang dikirim sesuai dengan max_score
+            $options  = collect($request->options)
+                ->values()
+                ->mapWithKeys(fn($label, $i) => [$i + 1 => $label])
+                ->all();
+            $maxScore = (int) $request->max_score;
         } else {
-            $maxScore = $request->type === 'open_text' ? 0 : (int) $request->max_score;
+            $maxScore = 0;
         }
 
         $question = $questionnaire->questions()->create([
@@ -208,15 +209,20 @@ class QuestionnaireController extends Controller
             'options.*'     => 'required|string|max:100',
         ]);
 
-        $options = null;
+        $options  = null;
+        $maxScore = 0;
+
         if ($request->type === 'boolean') {
+            // Boolean tetap 0/1
             $options  = ['0' => 'Tidak', '1' => 'Ya'];
             $maxScore = 1;
         } elseif ($request->type !== 'open_text') {
-            $options  = collect($request->options)->values()->mapWithKeys(fn($v, $i) => [$i => $v])->all();
+            // FIX: key dimulai dari 1 agar nilai yang dikirim sesuai dengan max_score
+            $options  = collect($request->options)
+                ->values()
+                ->mapWithKeys(fn($label, $i) => [$i + 1 => $label])
+                ->all();
             $maxScore = (int) $request->max_score;
-        } else {
-            $maxScore = 0;
         }
 
         $question->update([
