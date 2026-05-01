@@ -163,7 +163,7 @@
                     <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 hover:border-teal-400 dark:hover:border-teal-500 cursor-pointer transition-all has-[:checked]:border-teal-500 has-[:checked]:bg-teal-50 dark:has-[:checked]:bg-teal-900/20 group">
                         <input type="radio"
                                name="answers[{{ $i }}][score]"
-                               value="{{ $value }}"
+                               value="{{ $value + 1 }}"
                                class="w-4 h-4 text-teal-600 focus:ring-teal-500"
                                @change="if (current < {{ $questionnaire->questions->count() - 1 }}) setTimeout(() => current++, 300)">
                         <input type="hidden" name="answers[{{ $i }}][question_id]" value="{{ $question->id }}">
